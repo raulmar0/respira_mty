@@ -33,14 +33,8 @@ app.*.map.json
 
 # Android
 android/.gradle/
-android/app/debug/
-android/app/profile/
-android/app/release/
 android/build/
 android/local.properties
-android/gradlew
-android/gradlew.bat
-android/app/src/main/assets/
 android/*.iml
 
 # iOS
@@ -52,7 +46,6 @@ ios/Runner/GeneratedPluginRegistrant.*
 ios/Runner/GeneratedPluginRegistrant.h
 ios/Runner/GeneratedPluginRegistrant.m
 ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
-ios/Runner.xcodeproj/project.pbxproj
 ios/Flutter/.last_build_id
 ios/Flutter/AppFrameworkInfo.plist
 ios/Flutter/Debug.xcconfig
@@ -110,3 +103,9 @@ build/web/
 *.rar
 *.tar.gz
 *.tar
+
+# Optional: omit platforms
+windows/
+linux/
+macos/
+web/
