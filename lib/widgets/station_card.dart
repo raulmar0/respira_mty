@@ -4,8 +4,15 @@ import 'pollutant_chip.dart';
 
 class StationCard extends StatelessWidget {
   final Station station;
+  final bool? isFavorite;
+  final VoidCallback? onFavoriteToggle;
 
-  const StationCard({super.key, required this.station});
+  const StationCard({
+    super.key,
+    required this.station,
+    this.isFavorite,
+    this.onFavoriteToggle,
+  });
 
   Color _getStatusColor(int aqi) {
     if (aqi <= 50) return const Color(0xFF4CAF50); // Green
@@ -15,7 +22,7 @@ class StationCard extends StatelessWidget {
   }
 
   Color _getBackgroundColor(int aqi) {
-     if (aqi <= 50) return const Color(0xFFE8F5E9); // Light Green
+    if (aqi <= 50) return const Color(0xFFE8F5E9); // Light Green
     if (aqi <= 100) return const Color(0xFFFFF8E1); // Light Yellow
     if (aqi <= 150) return const Color(0xFFFFF3E0); // Light Orange
     return const Color(0xFFFFEBEE); // Light Red
@@ -25,6 +32,7 @@ class StationCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(station.aqi);
     final badgeColor = _getBackgroundColor(station.aqi);
+    final favorite = isFavorite ?? station.isFavorite;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -46,35 +54,47 @@ class StationCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              Expanded(
+                child: Text(
+                  station.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
               Row(
                 children: [
-                  Text(
-                    station.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
+                  IconButton(
+                    onPressed: onFavoriteToggle,
+                    visualDensity: VisualDensity.compact,
+                    icon: Icon(
+                      favorite ? Icons.favorite : Icons.favorite_border,
+                      size: 20,
+                      color: favorite ? const Color(0xFF4CAF50) : Colors.grey,
                     ),
                   ),
-                  if (station.isFavorite) ...[
-                    const SizedBox(width: 8),
-                    const Icon(Icons.favorite_border, size: 18, color: Colors.grey),
-                  ],
-                ],
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  '${station.aqi} AQI',
-                  style: TextStyle(
-                    color: statusColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      '${station.aqi} AQI',
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
             ],
           ),
@@ -118,16 +138,35 @@ class StationCard extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              PollutantChip(label: 'PM2.5', value: station.pm25.toStringAsFixed(1)),
+              PollutantChip(
+                label: 'PM2.5',
+                value: station.pm25.toStringAsFixed(1),
+              ),
               PollutantChip(
                 label: 'PM10',
                 value: station.pm10.toStringAsFixed(1),
                 valueColor: station.pm10 > 100 ? Colors.orange : null,
               ),
-              PollutantChip(label: 'O3', value: station.o3.toStringAsFixed(0), unit: 'ppb'),
-              PollutantChip(label: 'NO2', value: station.no2.toStringAsFixed(0), unit: 'ppb'),
-              PollutantChip(label: 'SO2', value: station.so2.toStringAsFixed(0), unit: 'ppb'),
-              PollutantChip(label: 'CO', value: station.co.toStringAsFixed(2), unit: 'ppm'),
+              PollutantChip(
+                label: 'O3',
+                value: station.o3.toStringAsFixed(0),
+                unit: 'ppb',
+              ),
+              PollutantChip(
+                label: 'NO2',
+                value: station.no2.toStringAsFixed(0),
+                unit: 'ppb',
+              ),
+              PollutantChip(
+                label: 'SO2',
+                value: station.so2.toStringAsFixed(0),
+                unit: 'ppb',
+              ),
+              PollutantChip(
+                label: 'CO',
+                value: station.co.toStringAsFixed(2),
+                unit: 'ppm',
+              ),
             ],
           ),
         ],

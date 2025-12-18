@@ -5,26 +5,51 @@
 // gestures. You can also use WidgetTester to find child widgets in the widget
 // tree, read text, and verify that the values of widget properties are correct.
 
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:respira_mty/main.dart';
+import 'package:respira_mty/models/station.dart';
+import 'package:respira_mty/providers/station_provider.dart';
+import 'package:respira_mty/screens/stations_list_screen.dart';
+import 'package:flutter/material.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  testWidgets('Stations list loads and favorites toggle works', (
+    WidgetTester tester,
+  ) async {
+    const station = Station(
+      id: '1',
+      apiCode: 'MTY-01',
+      name: 'Centro',
+      status: 'OK',
+      aqi: 42,
+      pm25: 12.3,
+      pm10: 20.1,
+      o3: 10,
+      no2: 5,
+      so2: 2,
+      co: 0.4,
+      latitude: 25.6866,
+      longitude: -100.3161,
+    );
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    await tester.pumpWidget(
+      ProviderScope(
+        overrides: [
+          airQualityProvider.overrideWith((ref) async => [station]),
+        ],
+        child: const MaterialApp(home: StationsListScreen()),
+      ),
+    );
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Estaciones'), findsOneWidget);
+    expect(find.text('Centro'), findsOneWidget);
+
+    expect(find.byIcon(Icons.favorite_border), findsOneWidget);
+    await tester.tap(find.byIcon(Icons.favorite_border));
     await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.byIcon(Icons.favorite), findsOneWidget);
   });
 }

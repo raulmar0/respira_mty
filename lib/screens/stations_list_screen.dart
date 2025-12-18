@@ -5,12 +5,22 @@ import '../widgets/station_card.dart';
 
 import 'stations_map_screen.dart';
 
-class StationsListScreen extends ConsumerWidget {
+class StationsListScreen extends ConsumerStatefulWidget {
   const StationsListScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final stationsAsync = ref.watch(airQualityProvider);
+  ConsumerState<StationsListScreen> createState() => _StationsListScreenState();
+}
+
+class _StationsListScreenState extends ConsumerState<StationsListScreen> {
+  bool _showSearch = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final stationsAsync = ref.watch(filteredStationsProvider);
+    final favorites = ref.watch(favoriteStationsProvider);
+    final selectedFilter = ref.watch(stationsListFilterProvider);
+    final query = ref.watch(stationSearchQueryProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -33,7 +43,7 @@ class StationsListScreen extends ConsumerWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(2),
                     decoration: BoxDecoration(
                       color: Colors.white,
                       shape: BoxShape.circle,
@@ -45,10 +55,64 @@ class StationsListScreen extends ConsumerWidget {
                         ),
                       ],
                     ),
-                    child: const Icon(Icons.search, color: Color(0xFF1A1F36)),
+                    child: IconButton(
+                      icon: Icon(
+                        _showSearch ? Icons.close : Icons.search,
+                        color: const Color(0xFF1A1F36),
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _showSearch = !_showSearch;
+                        });
+                        if (!_showSearch) {
+                          ref
+                              .read(stationSearchQueryProvider.notifier)
+                              .setQuery('');
+                        }
+                      },
+                    ),
                   ),
                 ],
               ),
+              if (_showSearch) ...[
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    autofocus: true,
+                    decoration: InputDecoration(
+                      border: InputBorder.none,
+                      hintText: 'Buscar estación…',
+                      suffixIcon: query.isEmpty
+                          ? null
+                          : IconButton(
+                              icon: const Icon(Icons.clear),
+                              onPressed: () {
+                                ref
+                                    .read(stationSearchQueryProvider.notifier)
+                                    .setQuery('');
+                              },
+                            ),
+                    ),
+                    onChanged: (value) {
+                      ref
+                          .read(stationSearchQueryProvider.notifier)
+                          .setQuery(value);
+                    },
+                  ),
+                ),
+              ],
               const SizedBox(height: 10),
               Center(
                 child: Text(
@@ -66,9 +130,22 @@ class StationsListScreen extends ConsumerWidget {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _buildFilterChip('All Stations', isSelected: true),
+                    _buildFilterChip(
+                      'All Stations',
+                      isSelected: selectedFilter == StationsListFilter.all,
+                      onTap: () => ref
+                          .read(stationsListFilterProvider.notifier)
+                          .setFilter(StationsListFilter.all),
+                    ),
                     const SizedBox(width: 12),
-                    _buildFilterChip('Favorites'),
+                    _buildFilterChip(
+                      'Favorites',
+                      isSelected:
+                          selectedFilter == StationsListFilter.favorites,
+                      onTap: () => ref
+                          .read(stationsListFilterProvider.notifier)
+                          .setFilter(StationsListFilter.favorites),
+                    ),
                     const SizedBox(width: 12),
                     _buildFilterChip('Nearest'),
                   ],
@@ -80,10 +157,21 @@ class StationsListScreen extends ConsumerWidget {
                   data: (stations) => ListView.builder(
                     itemCount: stations.length,
                     itemBuilder: (context, index) {
-                      return StationCard(station: stations[index]);
+                      final station = stations[index];
+                      final isFavorite = favorites.contains(station.id);
+                      return StationCard(
+                        station: station,
+                        isFavorite: isFavorite,
+                        onFavoriteToggle: () {
+                          ref
+                              .read(favoriteStationsProvider.notifier)
+                              .toggle(station.id);
+                        },
+                      );
                     },
                   ),
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
                   error: (error, stack) => Center(
                     child: Text(
                       'No se pudieron cargar las estaciones',
@@ -106,42 +194,57 @@ class StationsListScreen extends ConsumerWidget {
           if (index == 0) {
             Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const StationsMapScreen()),
+              MaterialPageRoute(
+                builder: (context) => const StationsMapScreen(),
+              ),
             );
           }
         },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: 'Settings',
+          ),
         ],
         currentIndex: 1,
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1A1F36) : Colors.white,
-        borderRadius: BorderRadius.circular(25),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: const Color(0xFF1A1F36).withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : [],
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? Colors.white : Colors.grey[600],
-          fontWeight: FontWeight.w600,
+  Widget _buildFilterChip(
+    String label, {
+    bool isSelected = false,
+    VoidCallback? onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+        decoration: BoxDecoration(
+          color: isSelected ? const Color(0xFF1A1F36) : Colors.white,
+          borderRadius: BorderRadius.circular(25),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: const Color(0xFF1A1F36).withValues(alpha: 0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : [],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? Colors.white : Colors.grey[600],
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
     );

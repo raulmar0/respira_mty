@@ -28,6 +28,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
   @override
   Widget build(BuildContext context) {
     final stationsAsync = ref.watch(airQualityProvider);
+    final favoriteIds = ref.watch(favoriteStationsProvider);
     const stationLocationAccent = Color(0xFF1A73E8);
     final stationMarkers = stationsAsync.maybeWhen(
       data: (value) => value,
@@ -42,6 +43,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
         }
       }
     }
+    final stationToShow = selectedStation;
 
     return Scaffold(
       body: Stack(
@@ -49,7 +51,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
           FlutterMap(
             mapController: _mapController,
             options: MapOptions(
-              initialCenter: const LatLng(25.6866, -100.3161), // Monterrey Center
+              initialCenter: const LatLng(
+                25.6866,
+                -100.3161,
+              ), // Monterrey Center
               initialZoom: 11.0,
               onTap: (tapPosition, point) {
                 setState(() {
@@ -72,7 +77,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white,
                         shape: BoxShape.circle,
-                        border: Border.all(color: stationLocationAccent, width: 2.5),
+                        border: Border.all(
+                          color: stationLocationAccent,
+                          width: 2.5,
+                        ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withValues(alpha: 0.15),
@@ -82,7 +90,11 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                         ],
                       ),
                       child: Center(
-                        child: Icon(Icons.location_on, size: 16, color: stationLocationAccent),
+                        child: Icon(
+                          Icons.location_on,
+                          size: 16,
+                          color: stationLocationAccent,
+                        ),
                       ),
                     ),
                   );
@@ -150,7 +162,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
               left: 16,
               right: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
@@ -169,7 +184,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                     Expanded(
                       child: Text(
                         'No se pudo cargar la calidad del aire. Revisa tu conexión.',
-                        style: TextStyle(color: Colors.grey[800], fontWeight: FontWeight.w600),
+                        style: TextStyle(
+                          color: Colors.grey[800],
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
                   ],
@@ -186,7 +204,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(25),
@@ -219,7 +240,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                             ),
                           ],
                         ),
-                        child: const Icon(Icons.layers_outlined, color: Colors.black87),
+                        child: const Icon(
+                          Icons.layers_outlined,
+                          color: Colors.black87,
+                        ),
                       ),
                     ],
                   ),
@@ -250,21 +274,33 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                 _buildMapControl(Icons.my_location, () {}),
                 const SizedBox(height: 16),
                 _buildMapControl(Icons.add, () {
-                  _mapController.move(_mapController.camera.center, _mapController.camera.zoom + 1);
+                  _mapController.move(
+                    _mapController.camera.center,
+                    _mapController.camera.zoom + 1,
+                  );
                 }),
                 const SizedBox(height: 8),
                 _buildMapControl(Icons.remove, () {
-                  _mapController.move(_mapController.camera.center, _mapController.camera.zoom - 1);
+                  _mapController.move(
+                    _mapController.camera.center,
+                    _mapController.camera.zoom - 1,
+                  );
                 }),
               ],
             ),
           ),
-          if (selectedStation != null)
+          if (stationToShow != null)
             Positioned(
               left: 16,
               right: 16,
               bottom: 16,
-              child: StationCard(station: selectedStation),
+              child: StationCard(
+                station: stationToShow,
+                isFavorite: favoriteIds.contains(stationToShow.id),
+                onFavoriteToggle: () => ref
+                    .read(favoriteStationsProvider.notifier)
+                    .toggle(stationToShow.id),
+              ),
             ),
         ],
       ),
@@ -283,8 +319,14 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-          BottomNavigationBarItem(icon: Icon(Icons.person_outline), label: 'Profile'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.person_outline),
+            label: 'Profile',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.settings_outlined),
+            label: 'Settings',
+          ),
         ],
       ),
     );
@@ -307,7 +349,9 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
       child: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : const Color(0xFFD35400), // Orange-ish for unselected in image
+          color: isSelected
+              ? Colors.white
+              : const Color(0xFFD35400), // Orange-ish for unselected in image
           fontWeight: FontWeight.w600,
           fontSize: 12,
         ),
