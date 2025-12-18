@@ -3,71 +3,65 @@
 *.log
 *.pyc
 *.swp
+*.tmp
 .DS_Store
-.atom/
-.build/
-.buildlog/
-.history
-.svn/
-.swiftpm/
-migrate_working_dir/
 
-# IntelliJ related
+# IDEs and editors
+.idea/
 *.iml
 *.ipr
 *.iws
-.idea/
+.vscode/
 
-# The .vscode folder contains launch configuration and tasks you configure in
-# VS Code which you may wish to be included in version control, so this line
-# is commented out by default.
-#.vscode/
-
-# Flutter/Dart/Pub related
-**/doc/api/
-**/ios/Flutter/.last_build_id
+# Flutter / Dart / Pub
 .dart_tool/
+.packages
+.pub/
+.pub-cache/
 .flutter-plugins
 .flutter-plugins-dependencies
-.pub-cache/
-.pub/
-/build/
-/coverage/
+.flutter_build/
+build/
+**/doc/api/
+coverage/
 
-# Symbolication related
+# Generated files
+flutter_export_environment.sh
+generated_plugin_registrant.*
 app.*.symbols
-
-# Obfuscation related
 app.*.map.json
 
-# Android Studio will place build artifacts here
-/android/app/debug
-/android/app/profile
-/android/app/release
-
 # Android
+android/.gradle/
+android/app/debug/
+android/app/profile/
+android/app/release/
+android/build/
+android/local.properties
 android/gradlew
 android/gradlew.bat
-android/local.properties
-android/generated/
-android/.gradle/
-android/*.iml
 android/app/src/main/assets/
+android/*.iml
 
 # iOS
+ios/.generated/
+ios/Pods/
+ios/Podfile.lock
+ios/Runner.xcworkspace/
+ios/Runner/GeneratedPluginRegistrant.*
+ios/Runner/GeneratedPluginRegistrant.h
+ios/Runner/GeneratedPluginRegistrant.m
+ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+ios/Runner.xcodeproj/project.pbxproj
+ios/Flutter/.last_build_id
 ios/Flutter/AppFrameworkInfo.plist
 ios/Flutter/Debug.xcconfig
 ios/Flutter/Release.xcconfig
 ios/Flutter/Generated.xcconfig
 ios/Flutter/flutter_export_environment.sh
 ios/Flutter/ephemeral/
-ios/Runner/GeneratedPluginRegistrant.h
-ios/Runner/GeneratedPluginRegistrant.m
-ios/.generated/
-ios/Podfile.lock
-ios/Pods/
-ios/Runner.xcworkspace/xcshareddata/
-ios/Runner.xcodeproj/project.xcworkspace/xcshareddata/
+ios/Flutter/Flutter-Debug.xcconfig
+ios/Flutter/Flutter-Release.xcconfig
 ios/*.mode1v3
 ios/*.mode2v3
 ios/*.moved-aside
@@ -77,11 +71,14 @@ ios/*.xccheckout
 ios/*.xcscmblueprint
 
 # macOS
-macos/Flutter/ephemeral/
-macos/Flutter/GeneratedPluginRegistrant.swift
-macos/Flutter/flutter_export_environment.sh
+macos/.build/
 macos/Pods/
 macos/Podfile.lock
+macos/Flutter/ephemeral/
+macos/Flutter/flutter_export_environment.sh
+macos/Flutter/GeneratedPluginRegistrant.*
+macos/Flutter/Flutter-Debug.xcconfig
+macos/Flutter/Flutter-Release.xcconfig
 macos/*.mode1v3
 macos/*.mode2v3
 macos/*.moved-aside
@@ -90,17 +87,26 @@ macos/*.perspectivev3
 macos/*.xccheckout
 macos/*.xcscmblueprint
 
-# Web
-web/flutter_service_worker.js
-
 # Linux
 linux/flutter/ephemeral/
-linux/flutter/generated_plugin_registrant.cc
-linux/flutter/generated_plugin_registrant.h
+linux/flutter/generated_plugin_registrant.*
 linux/flutter/generated_plugins.cmake
 
 # Windows
 windows/flutter/ephemeral/
+windows/flutter/generated_plugin_registrant.*
+windows/flutter/generated_plugins.cmake
 windows/flutter/generated_plugin_registrant.cc
 windows/flutter/generated_plugin_registrant.h
-windows/flutter/generated_plugins.cmake
+wincmds.log
+
+# Web
+web/flutter_service_worker.js
+web/flutter_service_worker.js.map
+build/web/
+
+# Distribution archives
+*.zip
+*.rar
+*.tar.gz
+*.tar
