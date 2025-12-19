@@ -252,58 +252,67 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> {
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: selectedFilter == StationsListFilter.favorites && favorites.isEmpty
-                    ? Center(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Icon(Icons.favorite_border, size: 56, color: Colors.grey[400]),
-                            const SizedBox(height: 12),
-                            Text(
-                              'No hay favoritos seleccionados',
-                              style: TextStyle(
-                                color: Colors.grey[600],
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
+                child: RefreshIndicator(
+                  onRefresh: () => ref.refresh(airQualityProvider.future),
+                  child: selectedFilter == StationsListFilter.favorites && favorites.isEmpty
+                      ? SingleChildScrollView(
+                          physics: const AlwaysScrollableScrollPhysics(),
+                          child: SizedBox(
+                            height: MediaQuery.of(context).size.height * 0.6,
+                            child: Center(
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.favorite_border, size: 56, color: Colors.grey[400]),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'No hay favoritos seleccionados',
+                                    style: TextStyle(
+                                      color: Colors.grey[600],
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Marca estaciones con el corazón para verlas aquí.',
+                                    style: TextStyle(color: Colors.grey[500]),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Marca estaciones con el corazón para verlas aquí.',
-                              style: TextStyle(color: Colors.grey[500]),
+                          ),
+                        )
+                      : stationsAsync.when(
+                          data: (stations) => ListView.builder(
+                            itemCount: stations.length,
+                            itemBuilder: (context, index) {
+                              final station = stations[index];
+                              final isFavorite = favorites.contains(station.id);
+                              return StationCard(
+                                station: station,
+                                isFavorite: isFavorite,
+                                onFavoriteToggle: () {
+                                  ref
+                                      .read(favoriteStationsProvider.notifier)
+                                      .toggle(station.id);
+                                },
+                              );
+                            },
+                          ),
+                          loading: () => ListView.builder(
+                            itemCount: 4,
+                            padding: const EdgeInsets.only(top: 0, bottom: 16),
+                            itemBuilder: (context, index) => const StationCardSkeleton(),
+                          ),
+                          error: (error, stack) => Center(
+                            child: Text(
+                              'No se pudieron cargar las estaciones',
+                              style: TextStyle(color: Colors.grey[600]),
                             ),
-                          ],
-                        ),
-                      )
-                    : stationsAsync.when(
-                        data: (stations) => ListView.builder(
-                          itemCount: stations.length,
-                          itemBuilder: (context, index) {
-                            final station = stations[index];
-                            final isFavorite = favorites.contains(station.id);
-                            return StationCard(
-                              station: station,
-                              isFavorite: isFavorite,
-                              onFavoriteToggle: () {
-                                ref
-                                    .read(favoriteStationsProvider.notifier)
-                                    .toggle(station.id);
-                              },
-                            );
-                          },
-                        ),
-                        loading: () => ListView.builder(
-                          itemCount: 4,
-                          padding: const EdgeInsets.only(top: 0, bottom: 16),
-                          itemBuilder: (context, index) => const StationCardSkeleton(),
-                        ),
-                        error: (error, stack) => Center(
-                          child: Text(
-                            'No se pudieron cargar las estaciones',
-                            style: TextStyle(color: Colors.grey[600]),
                           ),
                         ),
-                      ),
+                ),
               ),
             ],
           ),
