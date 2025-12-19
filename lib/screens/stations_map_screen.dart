@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../data/station_locations.dart';
 import '../models/station.dart';
 import '../providers/station_provider.dart';
+import '../utils/air_quality_scale.dart';
 import '../widgets/station_card.dart';
 
 class StationsMapScreen extends ConsumerStatefulWidget {
@@ -17,13 +18,6 @@ class StationsMapScreen extends ConsumerStatefulWidget {
 class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
   Station? _selectedStation;
   final MapController _mapController = MapController();
-
-  Color _getStatusColor(int aqi) {
-    if (aqi <= 50) return const Color(0xFF4CAF50); // Green
-    if (aqi <= 100) return const Color(0xFFFFC107); // Yellow/Amber
-    if (aqi <= 150) return const Color(0xFFFF9800); // Orange
-    return const Color(0xFFF44336); // Red
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -102,7 +96,9 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
               ),
               MarkerLayer(
                 markers: stationMarkers.map((station) {
-                  final color = _getStatusColor(station.aqi);
+                  final dominant = station.dominantPollutant;
+                  final color = dominant.color;
+                  final outerColor = AirQualityScale.getBackgroundColorForCategory(dominant.category);
                   return Marker(
                     point: LatLng(station.latitude, station.longitude),
                     width: 50,
@@ -117,7 +113,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: color, width: 3),
+                          border: Border.all(color: outerColor, width: 3),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
@@ -132,7 +128,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                             children: [
                               Icon(Icons.air, size: 16, color: color),
                               Text(
-                                '${station.aqi}',
+                                dominant.displayValue,
                                 style: TextStyle(
                                   color: color,
                                   fontWeight: FontWeight.bold,

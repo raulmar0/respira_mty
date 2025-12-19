@@ -41,22 +41,17 @@ class AirQualityService {
         final co = _extractValue(concentrations, 'CO');
 
         final updatedAt = _extractDate(concentrations) ?? _extractDate(parameters);
-        final normalizedPm25 = pm25 ?? 0;
-        final aqi = pm25 != null ? _calculateAqi(pm25) : 0;
-        final status = _statusLabelForAqi(aqi, pm25 != null);
 
         stations.add(Station(
           id: location.id,
           apiCode: location.apiCode,
           name: location.name,
-          status: status,
-          aqi: aqi,
-          pm25: normalizedPm25,
-          pm10: pm10 ?? 0,
-          o3: o3 ?? 0,
-          no2: no2 ?? 0,
-          so2: so2 ?? 0,
-          co: co ?? 0,
+          pm25: pm25,
+          pm10: pm10,
+          o3: o3,
+          no2: no2,
+          so2: so2,
+          co: co,
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           isFavorite: location.id == 'centro',
@@ -71,6 +66,7 @@ class AirQualityService {
 
     return stations;
   }
+
 
   List<Map<String, dynamic>> _decodeList(String body) {
     final decoded = jsonDecode(body);
@@ -114,50 +110,5 @@ class AirQualityService {
   String _normalizeParameter(String value) {
     return value.replaceAll(RegExp(r'[\.\s]'), '').toUpperCase();
   }
-
-  int _calculateAqi(double concentration) {
-    final breakpoints = [
-      _AqiBreakpoint(low: 0, high: 12.0, aqiLow: 0, aqiHigh: 50),
-      _AqiBreakpoint(low: 12.1, high: 35.4, aqiLow: 51, aqiHigh: 100),
-      _AqiBreakpoint(low: 35.5, high: 55.4, aqiLow: 101, aqiHigh: 150),
-      _AqiBreakpoint(low: 55.5, high: 150.4, aqiLow: 151, aqiHigh: 200),
-      _AqiBreakpoint(low: 150.5, high: 250.4, aqiLow: 201, aqiHigh: 300),
-      _AqiBreakpoint(low: 250.5, high: 350.4, aqiLow: 301, aqiHigh: 400),
-      _AqiBreakpoint(low: 350.5, high: 500.4, aqiLow: 401, aqiHigh: 500),
-    ];
-
-    for (final breakpoint in breakpoints) {
-      if (concentration >= breakpoint.low && concentration <= breakpoint.high) {
-        final range = breakpoint.high - breakpoint.low;
-        final ratio = range == 0 ? 0 : (concentration - breakpoint.low) / range;
-        final aqiRange = breakpoint.aqiHigh - breakpoint.aqiLow;
-        final value = (ratio * aqiRange) + breakpoint.aqiLow;
-        return value.round();
-      }
-    }
-
-    return 500;
-  }
-
-  String _statusLabelForAqi(int aqi, bool hasReading) {
-    if (!hasReading) return 'No data';
-    if (aqi <= 50) return 'Good Quality';
-    if (aqi <= 100) return 'Moderate';
-    if (aqi <= 150) return 'Unhealthy for Sensitive Groups';
-    return 'Unhealthy';
-  }
 }
 
-class _AqiBreakpoint {
-  const _AqiBreakpoint({
-    required this.low,
-    required this.high,
-    required this.aqiLow,
-    required this.aqiHigh,
-  });
-
-  final double low;
-  final double high;
-  final int aqiLow;
-  final int aqiHigh;
-}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/station.dart';
+import '../utils/air_quality_scale.dart';
 import 'pollutant_chip.dart';
 
 class StationCard extends StatelessWidget {
@@ -14,24 +15,11 @@ class StationCard extends StatelessWidget {
     this.onFavoriteToggle,
   });
 
-  Color _getStatusColor(int aqi) {
-    if (aqi <= 50) return const Color(0xFF4CAF50); // Green
-    if (aqi <= 100) return const Color(0xFFFFC107); // Yellow/Amber
-    if (aqi <= 150) return const Color(0xFFFF9800); // Orange
-    return const Color(0xFFF44336); // Red
-  }
-
-  Color _getBackgroundColor(int aqi) {
-    if (aqi <= 50) return const Color(0xFFE8F5E9); // Light Green
-    if (aqi <= 100) return const Color(0xFFFFF8E1); // Light Yellow
-    if (aqi <= 150) return const Color(0xFFFFF3E0); // Light Orange
-    return const Color(0xFFFFEBEE); // Light Red
-  }
-
   @override
   Widget build(BuildContext context) {
-    final statusColor = _getStatusColor(station.aqi);
-    final badgeColor = _getBackgroundColor(station.aqi);
+    final dominant = station.dominantPollutant;
+    final statusColor = dominant.color;
+    final badgeColor = AirQualityScale.getBackgroundColorForCategory(dominant.category);
     final favorite = isFavorite ?? station.isFavorite;
 
     return Container(
@@ -86,7 +74,9 @@ class StationCard extends StatelessWidget {
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Text(
-                      '${station.aqi} AQI',
+                      dominant.category == AirQualityCategory.maintenance
+                          ? 'N/D'
+                          : '${dominant.displayValue} ${dominant.name}',
                       style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.bold,
@@ -140,32 +130,37 @@ class StationCard extends StatelessWidget {
             children: [
               PollutantChip(
                 label: 'PM2.5',
-                value: station.pm25.toStringAsFixed(1),
+                value: station.pm25?.toStringAsFixed(1) ?? 'N/D',
+                valueColor: station.pm25 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryPM25(station.pm25!)) : Colors.grey,
               ),
               PollutantChip(
                 label: 'PM10',
-                value: station.pm10.toStringAsFixed(1),
-                valueColor: station.pm10 > 100 ? Colors.orange : null,
+                value: station.pm10?.toStringAsFixed(1) ?? 'N/D',
+                valueColor: station.pm10 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryPM10(station.pm10!)) : Colors.grey,
               ),
               PollutantChip(
                 label: 'O3',
-                value: station.o3.toStringAsFixed(0),
+                value: station.o3?.toStringAsFixed(0) ?? 'N/D',
                 unit: 'ppb',
+                valueColor: station.o3 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryO3(station.o3!)) : Colors.grey,
               ),
               PollutantChip(
                 label: 'NO2',
-                value: station.no2.toStringAsFixed(0),
+                value: station.no2?.toStringAsFixed(0) ?? 'N/D',
                 unit: 'ppb',
+                valueColor: station.no2 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryNO2(station.no2!)) : Colors.grey,
               ),
               PollutantChip(
                 label: 'SO2',
-                value: station.so2.toStringAsFixed(0),
+                value: station.so2?.toStringAsFixed(0) ?? 'N/D',
                 unit: 'ppb',
+                valueColor: station.so2 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategorySO2(station.so2!)) : Colors.grey,
               ),
               PollutantChip(
                 label: 'CO',
-                value: station.co.toStringAsFixed(2),
+                value: station.co?.toStringAsFixed(2) ?? 'N/D',
                 unit: 'ppm',
+                valueColor: station.co != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryCO(station.co!)) : Colors.grey,
               ),
             ],
           ),

@@ -21,8 +21,6 @@ void main() {
       id: '1',
       apiCode: 'MTY-01',
       name: 'Centro',
-      status: 'OK',
-      aqi: 42,
       pm25: 12.3,
       pm10: 20.1,
       o3: 10,
