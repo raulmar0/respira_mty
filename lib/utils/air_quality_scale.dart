@@ -164,7 +164,7 @@ class AirQualityScale {
       case AirQualityCategory.good:
         return const Color(0xFF00E400); // Verde
       case AirQualityCategory.acceptable:
-        return const Color.fromARGB(255, 255, 204, 0); // Amarillo
+        return const Color(0xFFFFFF00); // Amarillo
       case AirQualityCategory.bad:
         return const Color(0xFFFF7E00); // Naranja
       case AirQualityCategory.veryBad:
@@ -182,7 +182,7 @@ class AirQualityScale {
       case AirQualityCategory.good:
         return const Color(0xFFE8F5E9); // Verde claro
       case AirQualityCategory.acceptable:
-        return const Color(0xFFFCF5D4); // Amarillo claro
+        return const Color(0xFFFFFDE7); // Amarillo claro
       case AirQualityCategory.bad:
         return const Color(0xFFFFF3E0); // Naranja claro
       case AirQualityCategory.veryBad:

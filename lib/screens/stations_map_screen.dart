@@ -5,7 +5,6 @@ import 'package:latlong2/latlong.dart';
 import '../data/station_locations.dart';
 import '../models/station.dart';
 import '../providers/station_provider.dart';
-import '../utils/air_quality_scale.dart';
 import '../widgets/station_card.dart';
 
 class StationsMapScreen extends ConsumerStatefulWidget {
@@ -98,7 +97,6 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                 markers: stationMarkers.map((station) {
                   final dominant = station.dominantPollutant;
                   final color = dominant.color;
-                  final outerColor = AirQualityScale.getBackgroundColorForCategory(dominant.category);
                   return Marker(
                     point: LatLng(station.latitude, station.longitude),
                     width: 50,
@@ -113,7 +111,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
                         decoration: BoxDecoration(
                           color: Colors.white,
                           shape: BoxShape.circle,
-                          border: Border.all(color: outerColor, width: 3),
+                          border: Border.all(color: color, width: 3),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withValues(alpha: 0.2),
