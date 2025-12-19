@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>La ubicación se usa para ordenar estaciones por proximidad.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>La ubicación se usa para ordenar estaciones por proximidad.</string>
 </dict>
 </plist>

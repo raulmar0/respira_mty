@@ -1,9 +1,12 @@
+import 'dart:math' as math;
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../models/station.dart';
 import '../services/air_quality_service.dart';
+import 'location_provider.dart';
 
-enum StationsListFilter { all, favorites }
+enum StationsListFilter { all, favorites, nearest }
 
 class FavoriteStationsNotifier extends Notifier<Set<String>> {
   @override
@@ -54,15 +57,16 @@ final stationsListFilterProvider =
 
 final filteredStationsProvider = Provider<AsyncValue<List<Station>>>((ref) {
   final stationsAsync = ref.watch(airQualityProvider);
+  final locationAsync = ref.watch(currentLocationProvider);
   final favorites = ref.watch(favoriteStationsProvider);
   final query = ref.watch(stationSearchQueryProvider).trim().toLowerCase();
   final filter = ref.watch(stationsListFilterProvider);
 
   return stationsAsync.whenData((stations) {
-    Iterable<Station> result = stations;
+    List<Station> result = List<Station>.from(stations);
 
     if (filter == StationsListFilter.favorites) {
-      result = result.where((s) => favorites.contains(s.id));
+      result = result.where((s) => favorites.contains(s.id)).toList();
     }
 
     if (query.isNotEmpty) {
@@ -70,9 +74,36 @@ final filteredStationsProvider = Provider<AsyncValue<List<Station>>>((ref) {
         final name = s.name.toLowerCase();
         final apiCode = s.apiCode.toLowerCase();
         return name.contains(query) || apiCode.contains(query);
-      });
+      }).toList();
     }
 
-    return result.toList(growable: false);
+    if (filter == StationsListFilter.nearest) {
+      // Use device location if available, otherwise fallback to Monterrey center
+      final deviceCenter = locationAsync.maybeWhen(
+        data: (latlng) => latlng,
+        orElse: () => null,
+      );
+      final centerLat = deviceCenter?.latitude ?? 25.6866;
+      final centerLng = deviceCenter?.longitude ?? -100.3161;
+      double haversineDistance(Station a) {
+        const earthRadius = 6371.0; // km
+        final lat1 = centerLat * (math.pi / 180);
+        final lon1 = centerLng * (math.pi / 180);
+        final lat2 = a.latitude * (math.pi / 180);
+        final lon2 = a.longitude * (math.pi / 180);
+
+        final dLat = lat2 - lat1;
+        final dLon = lon2 - lon1;
+
+        final hav = math.pow(math.sin(dLat / 2), 2) +
+            math.cos(lat1) * math.cos(lat2) * math.pow(math.sin(dLon / 2), 2);
+        final c = 2 * math.asin(math.sqrt(hav));
+        return earthRadius * c;
+      }
+
+      result.sort((a, b) => haversineDistance(a).compareTo(haversineDistance(b)));
+    }
+
+    return List<Station>.unmodifiable(result);
   });
 });

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/station_provider.dart';
+import '../providers/location_provider.dart';
+import 'package:geolocator/geolocator.dart';
 import '../widgets/station_card.dart';
 
 import 'stations_map_screen.dart';
@@ -42,35 +44,126 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> {
                       color: Color(0xFF1A1F36),
                     ),
                   ),
-                  Container(
-                    padding: const EdgeInsets.all(2),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.05),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
                         ),
-                      ],
-                    ),
-                    child: IconButton(
-                      icon: Icon(
-                        _showSearch ? Icons.close : Icons.search,
-                        color: const Color(0xFF1A1F36),
+                        child: IconButton(
+                          tooltip: 'Refresh location',
+                          icon: const Icon(Icons.my_location),
+                          color: const Color(0xFF1A1F36),
+                          onPressed: () async {
+                            final messenger = ScaffoldMessenger.of(context);
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Comprobando permisos de ubicación...')),
+                            );
+
+                            final serviceEnabled = await Geolocator.isLocationServiceEnabled();
+                            if (!serviceEnabled) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('El servicio de ubicación está desactivado en el dispositivo. Actívalo en ajustes o en el emulador.')),
+                              );
+                              debugPrint('Location service disabled');
+                              return;
+                            }
+
+                            LocationPermission permission = await Geolocator.checkPermission();
+                            if (permission == LocationPermission.denied) {
+                              permission = await Geolocator.requestPermission();
+                            }
+
+                            if (permission == LocationPermission.denied) {
+                              messenger.showSnackBar(
+                                const SnackBar(content: Text('Permiso denegado. Concede permiso de ubicación a la app.')),
+                              );
+                              debugPrint('Location permission denied');
+                              return;
+                            }
+
+                            if (permission == LocationPermission.deniedForever) {
+                              messenger.showSnackBar(
+                                SnackBar(
+                                  content: const Text('Permiso denegado permanentemente. Abre ajustes para permitir la ubicación.'),
+                                  action: SnackBarAction(
+                                    label: 'Abrir ajustes',
+                                    onPressed: () => Geolocator.openAppSettings(),
+                                  ),
+                                ),
+                              );
+                              debugPrint('Location permission denied forever');
+                              return;
+                            }
+
+                            messenger.showSnackBar(
+                              const SnackBar(content: Text('Obteniendo ubicación...')),
+                            );
+
+                            try {
+                              final latlng = await ref.refresh(currentLocationProvider.future);
+                              if (latlng == null) {
+                                messenger.showSnackBar(
+                                  const SnackBar(content: Text('No se obtuvo ubicación (error).')),
+                                );
+                                debugPrint('currentLocationProvider returned null');
+                              } else {
+                                messenger.showSnackBar(
+                                  SnackBar(content: Text('Ubicación: ${latlng.latitude}, ${latlng.longitude}')),
+                                );
+                                debugPrint('Device location: ${latlng.latitude}, ${latlng.longitude}');
+                              }
+                            } catch (e, st) {
+                              messenger.showSnackBar(
+                                SnackBar(content: Text('Error obteniendo ubicación: $e')),
+                              );
+                              debugPrint('Error getting location: $e');
+                              debugPrintStack(stackTrace: st);
+                            }
+                          },
+                        ),
                       ),
-                      onPressed: () {
-                        setState(() {
-                          _showSearch = !_showSearch;
-                        });
-                        if (!_showSearch) {
-                          ref
-                              .read(stationSearchQueryProvider.notifier)
-                              .setQuery('');
-                        }
-                      },
-                    ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.all(2),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.05),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          icon: Icon(
+                            _showSearch ? Icons.close : Icons.search,
+                            color: const Color(0xFF1A1F36),
+                          ),
+                          onPressed: () {
+                            setState(() {
+                              _showSearch = !_showSearch;
+                            });
+                            if (!_showSearch) {
+                              ref
+                                  .read(stationSearchQueryProvider.notifier)
+                                  .setQuery('');
+                            }
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -147,7 +240,13 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> {
                           .setFilter(StationsListFilter.favorites),
                     ),
                     const SizedBox(width: 12),
-                    _buildFilterChip('Nearest'),
+                    _buildFilterChip(
+                      'Nearest',
+                      isSelected: selectedFilter == StationsListFilter.nearest,
+                      onTap: () => ref
+                          .read(stationsListFilterProvider.notifier)
+                          .setFilter(StationsListFilter.nearest),
+                    ),
                   ],
                 ),
               ),
