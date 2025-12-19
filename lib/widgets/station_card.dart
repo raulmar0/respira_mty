@@ -182,3 +182,67 @@ class StationCard extends StatelessWidget {
     return 'Updated ${delta.inDays}d ago';
   }
 }
+
+class StationCardSkeleton extends StatelessWidget {
+  const StationCardSkeleton({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final bg = Colors.grey[200]!;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 6,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Container(
+                  height: 18,
+                  color: bg,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                width: 56,
+                height: 24,
+                color: bg,
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Container(height: 12, width: 120, color: bg),
+          const SizedBox(height: 18),
+          Row(
+            children: List.generate(
+              4,
+              (index) => Expanded(
+                child: Container(
+                  height: 36,
+                  margin: EdgeInsets.only(left: index == 0 ? 0 : 8),
+                  decoration: BoxDecoration(
+                    color: bg,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
