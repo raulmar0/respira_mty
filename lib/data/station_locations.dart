@@ -60,7 +60,7 @@ const stationLocations = <StationLocation>[
   StationLocation(
     name: 'García, Sierra Leal',
     id: 'noroeste2',
-    apiCode: 'NOROESTE2',
+    apiCode: 'GARCIA',
     coords: LatLng(25.800408, -100.58514),
   ),
   StationLocation(

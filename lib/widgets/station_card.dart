@@ -125,44 +125,24 @@ class StationCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              PollutantChip(
-                label: 'PM2.5',
-                value: station.pm25?.toStringAsFixed(1) ?? 'N/D',
-                valueColor: station.pm25 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryPM25(station.pm25!)) : Colors.grey,
-              ),
-              PollutantChip(
-                label: 'PM10',
-                value: station.pm10?.toStringAsFixed(1) ?? 'N/D',
-                valueColor: station.pm10 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryPM10(station.pm10!)) : Colors.grey,
-              ),
-              PollutantChip(
-                label: 'O3',
-                value: station.o3?.toStringAsFixed(0) ?? 'N/D',
-                unit: 'ppb',
-                valueColor: station.o3 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryO3(station.o3!)) : Colors.grey,
-              ),
-              PollutantChip(
-                label: 'NO2',
-                value: station.no2?.toStringAsFixed(0) ?? 'N/D',
-                unit: 'ppb',
-                valueColor: station.no2 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryNO2(station.no2!)) : Colors.grey,
-              ),
-              PollutantChip(
-                label: 'SO2',
-                value: station.so2?.toStringAsFixed(0) ?? 'N/D',
-                unit: 'ppb',
-                valueColor: station.so2 != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategorySO2(station.so2!)) : Colors.grey,
-              ),
-              PollutantChip(
-                label: 'CO',
-                value: station.co?.toStringAsFixed(2) ?? 'N/D',
-                unit: 'ppm',
-                valueColor: station.co != null ? AirQualityScale.getColorForCategory(AirQualityScale.getCategoryCO(station.co!)) : Colors.grey,
-              ),
-            ],
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: station.pollutantsFromUI.map((pollutant) {
+              final parameter = pollutant['parameter'] as String;
+              final value = pollutant['value'] as double?;
+              final label = pollutant['label'] as String?;
+              final displayLabel = _getDisplayLabel(parameter);
+              final unit = AirQualityScale.getUnitForParameter(parameter);
+              final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
+              final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
+              return PollutantChip(
+                label: displayLabel,
+                value: displayValue,
+                unit: unit,
+                valueColor: color,
+              );
+            }).toList(),
           ),
         ],
       ),
@@ -175,6 +155,25 @@ class StationCard extends StatelessWidget {
     if (delta.inMinutes < 60) return 'Updated ${delta.inMinutes}m ago';
     if (delta.inHours < 24) return 'Updated ${delta.inHours}h ago';
     return 'Updated ${delta.inDays}d ago';
+  }
+
+  String _getDisplayLabel(String parameter) {
+    switch (parameter.toUpperCase()) {
+      case 'PM10M':
+        return 'PM10';
+      case 'PM25M':
+        return 'PM2.5';
+      case 'O3M':
+        return 'O3';
+      case 'NO2M':
+        return 'NO2';
+      case 'SO2M':
+        return 'SO2';
+      case 'COM':
+        return 'CO';
+      default:
+        return parameter;
+    }
   }
 }
 

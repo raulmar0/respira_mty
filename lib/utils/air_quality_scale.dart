@@ -158,6 +158,57 @@ class AirQualityScale {
     );
   }
 
+  /// Obtiene el color para un parámetro y valor dado
+  static Color getColorForParameter(String parameter, double value) {
+    switch (parameter.toUpperCase()) {
+      case 'PM10':
+      case 'PM10M':
+        return getColorForCategory(getCategoryPM10(value));
+      case 'PM25':
+      case 'PM2.5':
+      case 'PM25M':
+        return getColorForCategory(getCategoryPM25(value));
+      case 'O3':
+      case 'O3M':
+        return getColorForCategory(getCategoryO3(value));
+      case 'NO2':
+      case 'NO2M':
+        return getColorForCategory(getCategoryNO2(value));
+      case 'SO2':
+      case 'SO2M':
+        return getColorForCategory(getCategorySO2(value));
+      case 'CO':
+      case 'COM':
+        return getColorForCategory(getCategoryCO(value));
+      default:
+        return Colors.grey;
+    }
+  }
+
+  /// Obtiene la unidad para un parámetro
+  static String getUnitForParameter(String parameter) {
+    switch (parameter.toUpperCase()) {
+      case 'PM10':
+      case 'PM10M':
+      case 'PM25':
+      case 'PM2.5':
+      case 'PM25M':
+        return 'µg/m³';
+      case 'O3':
+      case 'O3M':
+      case 'NO2':
+      case 'NO2M':
+      case 'SO2':
+      case 'SO2M':
+        return 'ppb';
+      case 'CO':
+      case 'COM':
+        return 'ppm';
+      default:
+        return '';
+    }
+  }
+
   /// Obtiene el color para una categoría
   static Color getColorForCategory(AirQualityCategory category) {
     switch (category) {

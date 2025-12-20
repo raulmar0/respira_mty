@@ -1,48 +1,73 @@
 import 'dart:convert';
-
-import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-
-import '../data/station_locations.dart';
 import '../models/station.dart';
+import '../data/station_locations.dart';
 
 class AirQualityService {
-  static const String _baseUrl = 'http://aire.nl.gob.mx/SIMA2017reportes';
-  final http.Client _client;
-
-  AirQualityService([http.Client? client]) : _client = client ?? http.Client();
-
   Future<List<Station>> fetchStations() async {
     final stations = <Station>[];
 
-    try {
-      for (final location in stationLocations) {
-        debugPrint('Requesting air data for ${location.apiCode}');
+    for (final location in stationLocations) {
+      try {
+        // 1. Esperar respuesta de ReporteDiariosima.php
+        final reportUrl = 'https://aire.nl.gob.mx/SIMA2017reportes/ReporteDiariosimaIcars.php?estacion1=${location.apiCode}';
+        final reportResponse = await http.get(Uri.parse(reportUrl));
+        if (reportResponse.statusCode != 200) {
+          print('Error fetching report for ${location.apiCode}: ${reportResponse.statusCode}');
+          continue;
+        }
 
-        await _client.get(
-          Uri.parse('$_baseUrl/ReporteDiariosima.php').replace(
-            queryParameters: {'estacion1': location.apiCode},
-          ),
-        );
+        // // Esperar 300ms antes de llamar los demás endpoints
+        // await Future.delayed(Duration(milliseconds: 1000));
 
-        final concentrationResponse =
-            await _client.get(Uri.parse('$_baseUrl/api_conc.php'));
-        final parameterResponse =
-            await _client.get(Uri.parse('$_baseUrl/api_parametrosI.php'));
+        // 2. Hacer GET a api_conc.php y guardar en parametrosAlerta
+        final concUrl = 'https://aire.nl.gob.mx/SIMA2017reportes/api_conc.php';
+        final concResponse = await http.get(Uri.parse(concUrl));
+        if (concResponse.statusCode != 200) {
+          print('Error fetching conc for ${location.apiCode}: ${concResponse.statusCode}');
+          continue;
+        }
+        final parametrosAlerta = jsonDecode(utf8.decode(concResponse.bodyBytes)) as List<dynamic>;
 
-        final concentrations = _decodeList(concentrationResponse.body);
-        final parameters = _decodeList(parameterResponse.body);
+        // 3. Hacer GET a api_indice.php y guardar en parametrosUI
+        final paramUrl = 'http://aire.nl.gob.mx/SIMA2017reportes/api_indice.php';
+        final paramResponse = await http.get(Uri.parse(paramUrl));
+        if (paramResponse.statusCode != 200) {
+          print('Error fetching param for ${location.apiCode}: ${paramResponse.statusCode}');
+          continue;
+        }
+        final parametrosUI = jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>;
 
-        final pm25 = _extractValue(concentrations, 'PM2.5');
-        final pm10 = _extractValue(concentrations, 'PM10');
-        final o3 = _extractValue(concentrations, 'O3');
-        final no2 = _extractValue(concentrations, 'NO2');
-        final so2 = _extractValue(concentrations, 'SO2');
-        final co = _extractValue(concentrations, 'CO');
+        // Parse pollutants from parametrosUI
+        double? pm10, pm25, o3, no2, so2, co;
+        for (final param in parametrosUI) {
+          final parameter = param['Parameter'] as String;
+          final hrAveData = param['HrAveData'];
+          final value = hrAveData is num ? hrAveData.toDouble() : (hrAveData == "ND" ? null : double.tryParse(hrAveData.toString()));
 
-        final updatedAt = _extractDate(concentrations) ?? _extractDate(parameters);
+          switch (parameter) {
+            case 'PM10_12':
+              pm10 = value;
+              break;
+            case 'PM25_12':
+              pm25 = value;
+              break;
+            case 'O3m':
+              o3 = value;
+              break;
+            case 'NO2m':
+              no2 = value;
+              break;
+            case 'SO2_1':
+              so2 = value;
+              break;
+            case 'CO8m':
+              co = value;
+              break;
+          }
+        }
 
-        stations.add(Station(
+        final station = Station(
           id: location.id,
           apiCode: location.apiCode,
           name: location.name,
@@ -54,61 +79,35 @@ class AirQualityService {
           co: co,
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
-          isFavorite: location.id == 'centro',
-          updatedAt: updatedAt,
-        ));
+          updatedAt: DateTime.now(),
+          parametrosAlerta: parametrosAlerta.cast<Map<String, dynamic>>(),
+          parametrosUI: parametrosUI.cast<Map<String, dynamic>>(),
+        );
 
-        await Future.delayed(const Duration(milliseconds: 300));
+        stations.add(station);
+
+        // Log the station
+        print('------------');
+        print('${station.name}');
+        print('api_conc.php:');
+        print('{');
+        final prettyConc = JsonEncoder.withIndent('  ').convert(parametrosAlerta);
+        print(prettyConc);
+        print('}');
+        print('api_indice.php');
+        print('{');
+        final prettyParam = JsonEncoder.withIndent('  ').convert(parametrosUI);
+        print(prettyParam);
+        print('}');
+        print('model');
+        print('----------------------');
+
+      } catch (e) {
+        print('Error fetching data for ${location.apiCode}: $e');
       }
-    } finally {
-      _client.close();
     }
 
     return stations;
-  }
-
-
-  List<Map<String, dynamic>> _decodeList(String body) {
-    final decoded = jsonDecode(body);
-    if (decoded is List) {
-      return List<Map<String, dynamic>>.from(decoded);
-    }
-    return const [];
-  }
-
-  double? _extractValue(List<Map<String, dynamic>> values, String target) {
-    final normalizedTarget = _normalizeParameter(target);
-    for (final entry in values) {
-      final raw = entry['Parameter'] as String?;
-      if (raw == null) continue;
-      if (_normalizeParameter(raw) == normalizedTarget) {
-        return _toDouble(entry['HrAveData']);
-      }
-    }
-    return null;
-  }
-
-  DateTime? _extractDate(List<Map<String, dynamic>> values) {
-    for (final entry in values) {
-      final raw = entry['Date'] as String?;
-      if (raw == null) continue;
-      final parsed = DateTime.tryParse(raw);
-      if (parsed != null) {
-        return parsed;
-      }
-    }
-    return null;
-  }
-
-  double? _toDouble(dynamic value) {
-    if (value == null) return null;
-    if (value is num) return value.toDouble();
-    final cleaned = value.toString().replaceAll(',', '.').trim();
-    return double.tryParse(cleaned);
-  }
-
-  String _normalizeParameter(String value) {
-    return value.replaceAll(RegExp(r'[\.\s]'), '').toUpperCase();
   }
 }
 
