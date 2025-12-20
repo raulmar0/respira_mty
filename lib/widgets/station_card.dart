@@ -125,24 +125,28 @@ class StationCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 20),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: station.pollutantsFromUI.map((pollutant) {
-              final parameter = pollutant['parameter'] as String;
-              final value = pollutant['value'] as double?;
-              final label = pollutant['label'] as String?;
-              final displayLabel = _getDisplayLabel(parameter);
-              final unit = AirQualityScale.getUnitForParameter(parameter);
-              final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
-              final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
-              return PollutantChip(
-                label: displayLabel,
-                value: displayValue,
-                unit: unit,
-                valueColor: color,
-              );
-            }).toList(),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: station.pollutantsFromUI.map((pollutant) {
+                final parameter = pollutant['parameter'] as String;
+                final value = pollutant['value'] as double?;
+                final label = pollutant['label'] as String?;
+                final displayLabel = _getDisplayLabel(parameter);
+                final unit = pollutant['unit'] as String? ?? AirQualityScale.getUnitForParameter(parameter);
+                final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
+                final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
+                return Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: PollutantChip(
+                    label: displayLabel,
+                    value: displayValue,
+                    unit: unit,
+                    valueColor: color,
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),
