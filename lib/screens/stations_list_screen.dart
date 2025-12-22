@@ -5,7 +5,6 @@ import '../providers/location_provider.dart';
 import 'package:geolocator/geolocator.dart';
 import '../widgets/station_card.dart';
 
-import 'stations_map_screen.dart';
 
 class StationsListScreen extends ConsumerStatefulWidget {
   const StationsListScreen({super.key});
@@ -14,11 +13,15 @@ class StationsListScreen extends ConsumerStatefulWidget {
   ConsumerState<StationsListScreen> createState() => _StationsListScreenState();
 }
 
-class _StationsListScreenState extends ConsumerState<StationsListScreen> {
+class _StationsListScreenState extends ConsumerState<StationsListScreen> with AutomaticKeepAliveClientMixin<StationsListScreen> {
   bool _showSearch = false;
 
   @override
+  bool get wantKeepAlive => true;
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final stationsAsync = ref.watch(filteredStationsProvider);
     final favorites = ref.watch(favoriteStationsProvider);
     final selectedFilter = ref.watch(stationsListFilterProvider);
@@ -318,36 +321,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> {
           ),
         ),
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF4CAF50),
-        unselectedItemColor: Colors.grey[400],
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        onTap: (index) {
-          if (index == 0) {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (context) => const StationsMapScreen(),
-              ),
-            );
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
-          ),
-        ],
-        currentIndex: 1,
-      ),
+
     );
   }
 

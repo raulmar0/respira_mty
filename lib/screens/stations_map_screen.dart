@@ -14,12 +14,17 @@ class StationsMapScreen extends ConsumerStatefulWidget {
   ConsumerState<StationsMapScreen> createState() => _StationsMapScreenState();
 }
 
-class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
+class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with AutomaticKeepAliveClientMixin<StationsMapScreen> {
   Station? _selectedStation;
   final MapController _mapController = MapController();
 
   @override
+  bool get wantKeepAlive => true;
+
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context);
     final stationsAsync = ref.watch(airQualityProvider);
     final favoriteIds = ref.watch(favoriteStationsProvider);
     const stationLocationAccent = Color(0xFF1A73E8);
@@ -298,31 +303,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> {
             ),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF4CAF50),
-        unselectedItemColor: Colors.grey[400],
-        showSelectedLabels: true,
-        showUnselectedLabels: true,
-        currentIndex: 0, // Map is selected
-        onTap: (index) {
-          if (index == 1) {
-            Navigator.pop(context); // Go back to list
-          }
-        },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person_outline),
-            label: 'Profile',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings_outlined),
-            label: 'Settings',
-          ),
-        ],
-      ),
+
     );
   }
 

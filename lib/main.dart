@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'screens/stations_list_screen.dart';
+import 'screens/main_shell.dart';
 
 void main() {
   runApp(
@@ -24,7 +24,7 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Spline Sans',
         scaffoldBackgroundColor: const Color(0xFFF5F7FA),
       ),
-      home: const StationsListScreen(),
+      home: const MainShell(),
     );
   }
 }
