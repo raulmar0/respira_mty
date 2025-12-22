@@ -1,0 +1,25 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Language choices for the app
+enum AppLanguage { spanish, english }
+
+extension AppLanguageExt on AppLanguage {
+  String get displayName {
+    switch (this) {
+      case AppLanguage.spanish:
+        return 'Español';
+      case AppLanguage.english:
+        return 'English';
+    }
+  }
+}
+
+/// Notifier-based provider for language (compatible with project's Notifier API)
+class LanguageNotifier extends Notifier<AppLanguage> {
+  @override
+  AppLanguage build() => AppLanguage.spanish;
+
+  void setLanguage(AppLanguage lang) => state = lang;
+}
+
+final languageProvider = NotifierProvider<LanguageNotifier, AppLanguage>(LanguageNotifier.new);

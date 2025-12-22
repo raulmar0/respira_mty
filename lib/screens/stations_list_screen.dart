@@ -19,6 +19,13 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
   @override
   bool get wantKeepAlive => true;
 
+  String _formatTime(DateTime dt) {
+    final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
+    final minute = dt.minute.toString().padLeft(2, '0');
+    final ampm = dt.hour >= 12 ? 'PM' : 'AM';
+    return '$hour:$minute $ampm';
+  }
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
@@ -26,6 +33,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
     final favorites = ref.watch(favoriteStationsProvider);
     final selectedFilter = ref.watch(stationsListFilterProvider);
     final query = ref.watch(stationSearchQueryProvider);
+    final lastUpdate = ref.watch(lastUpdateProvider);
 
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
@@ -212,7 +220,9 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
               const SizedBox(height: 10),
               Center(
                 child: Text(
-                  'MONTERREY • LAST UPDATED: 10:30 AM',
+                  lastUpdate != null
+                      ? 'LAST UPDATED: ${_formatTime(lastUpdate)}'
+                      : 'LAST UPDATED: —',
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,

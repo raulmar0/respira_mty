@@ -22,6 +22,9 @@ class StationCard extends StatelessWidget {
     final badgeColor = dominant.statusBackground;
     final circleColor = dominant.statusColors.circle;
     final favorite = isFavorite ?? station.isFavorite;
+    final nameParts = station.name.split(',');
+    final municipality = nameParts.first.trim();
+    final zone = nameParts.length > 1 ? nameParts.sublist(1).join(',').trim() : '';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -44,101 +47,84 @@ class StationCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  station.name,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: onFavoriteToggle,
-                    visualDensity: VisualDensity.compact,
-                    icon: Icon(
-                      favorite ? Icons.favorite : Icons.favorite_border,
-                      size: 20,
-                      color: favorite ? const Color(0xFF4CAF50) : Colors.grey,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: badgeColor,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      dominant.category == AirQualityCategory.maintenance
-                          ? 'N/D'
-                          : '${dominant.displayValue} ${dominant.name}',
-                      style: TextStyle(
-                        color: statusTextColor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 8,
-                      height: 8,
-                      decoration: BoxDecoration(
-                        color: circleColor, // use status circle color for the dot
-                        shape: BoxShape.circle,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    // Allow status to wrap to two lines without pushing the update time
-                    Expanded(
-                      child: Text(
-                        station.status,
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            municipality,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                      ),
+                        IconButton(
+                          onPressed: onFavoriteToggle,
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(
+                            favorite ? Icons.favorite : Icons.favorite_border,
+                            size: 20,
+                            color: favorite ? const Color(0xFF4CAF50) : Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 8,
+                          height: 8,
+                          decoration: BoxDecoration(
+                            color: circleColor,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            station.status,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              color: Colors.grey[600],
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
               ),
-              if (station.updatedAt != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
-                  child: IntrinsicWidth(
-                    child: Text(
-                      _relativeTime(station.updatedAt!),
-                      textAlign: TextAlign.right,
-                      softWrap: false,
-                      style: TextStyle(
-                        color: Colors.grey[500],
-                        fontSize: 11,
-                        fontWeight: FontWeight.w500,
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  if (zone.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: badgeColor,
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Text(
+                        zone,
+                        style: TextStyle(
+                          color: statusTextColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ),
-                  ),
-                ),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 20),
@@ -182,13 +168,7 @@ class StationCard extends StatelessWidget {
     );
   }
 
-  String _relativeTime(DateTime updatedAt) {
-    final delta = DateTime.now().difference(updatedAt);
-    if (delta.inMinutes < 1) return 'Updated just now';
-    if (delta.inMinutes < 60) return 'Updated ${delta.inMinutes}m ago';
-    if (delta.inHours < 24) return 'Updated ${delta.inHours}h ago';
-    return 'Updated ${delta.inDays}d ago';
-  }
+
 
   String _getDisplayLabel(String parameter) {
     switch (parameter.toUpperCase()) {

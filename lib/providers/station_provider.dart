@@ -107,3 +107,17 @@ final filteredStationsProvider = Provider<AsyncValue<List<Station>>>((ref) {
     return List<Station>.unmodifiable(result);
   });
 });
+
+final lastUpdateProvider = Provider<DateTime?>((ref) {
+  final stationsAsync = ref.watch(airQualityProvider);
+  return stationsAsync.when(
+    data: (stations) {
+      final dates = stations.map((s) => s.updatedAt).whereType<DateTime>().toList();
+      if (dates.isEmpty) return null;
+      dates.sort((a, b) => b.compareTo(a)); // newest first
+      return dates.first;
+    },
+    loading: () => null,
+    error: (_, __) => null,
+  );
+});

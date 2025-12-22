@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/app_colors.dart';
+import '../providers/settings_provider.dart';
 
-class SettingsScreen extends StatelessWidget {
+class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final currentLang = ref.watch(languageProvider);
+
     return Scaffold(
       backgroundColor: AppColors.backgroundGray, // Mismo fondo gris claro
       appBar: AppBar(
@@ -77,13 +81,44 @@ class SettingsScreen extends StatelessWidget {
             const _SectionHeader(title: "VISUALIZACIÓN"),
             _SettingsGroup(
               children: [
-                const _SettingsTile(
+                _SettingsTile(
                   icon: Icons.bar_chart_rounded,
                   iconColor: Colors.green,
-                  iconBg: Color(0xFFE8F5E9),
+                  iconBg: const Color(0xFFE8F5E9),
                   title: "Unidades",
                   trailingText: "IMECA",
                   showArrow: true,
+                ),
+                const _CustomDivider(),
+                _SettingsTile(
+                  icon: Icons.language,
+                  iconColor: Colors.blue,
+                  iconBg: const Color(0xFFE3F2FD),
+                  title: "Idioma",
+                  trailingText: currentLang.displayName,
+                  showArrow: true,
+                  onTap: () async {
+                    final chosen = await showDialog<AppLanguage>(
+                      context: context,
+                      builder: (ctx) => SimpleDialog(
+                        title: const Text('Idioma'),
+                        children: [
+                          SimpleDialogOption(
+                            onPressed: () => Navigator.pop(ctx, AppLanguage.spanish),
+                            child: const Text('Español'),
+                          ),
+                          SimpleDialogOption(
+                            onPressed: () => Navigator.pop(ctx, AppLanguage.english),
+                            child: const Text('English'),
+                          ),
+                        ],
+                      ),
+                    );
+
+                    if (chosen != null) {
+                      ref.read(languageProvider.notifier).setLanguage(chosen);
+                    }
+                  },
                 ),
                 const _CustomDivider(),
                 const _SettingsTile(
@@ -273,6 +308,7 @@ class _SettingsTile extends StatelessWidget {
   final Widget? trailing;
   final String? trailingText;
   final bool showArrow;
+  final VoidCallback? onTap;
 
   const _SettingsTile({
     this.icon,
@@ -283,47 +319,52 @@ class _SettingsTile extends StatelessWidget {
     this.trailing,
     this.trailingText,
     this.showArrow = false,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      child: Row(
-        children: [
-          if (icon != null) ...[
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: iconBg,
-                shape: BoxShape.circle,
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color: iconBg,
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(icon, color: iconColor, size: 20),
               ),
-              child: Icon(icon, color: iconColor, size: 20),
+              const SizedBox(width: 16),
+            ],
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
+                  if (subtitle != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 2),
+                      child: Text(subtitle!, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
+                    ),
+                ],
+              ),
             ),
-            const SizedBox(width: 16),
+            if (trailingText != null)
+              Text(trailingText!, style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500)),
+            if (trailing != null) trailing!,
+            if (showArrow) ...[
+              const SizedBox(width: 8),
+              Icon(Icons.chevron_right, size: 20, color: Colors.grey[400]),
+            ]
           ],
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title, style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15)),
-                if (subtitle != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 2),
-                    child: Text(subtitle!, style: TextStyle(color: Colors.grey[500], fontSize: 12)),
-                  ),
-              ],
-            ),
-          ),
-          if (trailingText != null)
-            Text(trailingText!, style: TextStyle(color: Colors.grey[500], fontSize: 14, fontWeight: FontWeight.w500)),
-          if (trailing != null) trailing!,
-          if (showArrow) ...[
-            const SizedBox(width: 8),
-            Icon(Icons.chevron_right, size: 20, color: Colors.grey[400]),
-          ]
-        ],
+        ),
       ),
     );
   }
