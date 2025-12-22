@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class PollutantChip extends StatelessWidget {
   final String label;
@@ -29,7 +30,7 @@ class PollutantChip extends StatelessWidget {
       width: w,
       padding: EdgeInsets.symmetric(vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.pollutantChipBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(

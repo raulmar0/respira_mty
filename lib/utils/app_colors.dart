@@ -13,6 +13,7 @@ class AppColors {
   // UI & text colors
   static const Color slateGray = Color(0xFF94A3B8); // Offline / disabled / secondary
   static const Color backgroundGray = Color(0xFFF6F8F7); // Scaffold background
+  static const Color pollutantChipBackground = Color(0xFFF8FAFC); // Background for pollutant chips
   static const Color textPrimary = Color(0xFF0F172A); // Primary text (Slate 900)
   static const Color textSecondary = Color(0xFF64748B); // Secondary text (Slate 500)
 
