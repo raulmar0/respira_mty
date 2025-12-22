@@ -6,6 +6,8 @@ import '../data/station_locations.dart';
 import '../models/station.dart';
 import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
+import '../utils/app_colors.dart';
+import '../utils/air_quality_scale.dart';
 
 class StationsMapScreen extends ConsumerStatefulWidget {
   const StationsMapScreen({super.key});
@@ -14,8 +16,11 @@ class StationsMapScreen extends ConsumerStatefulWidget {
   ConsumerState<StationsMapScreen> createState() => _StationsMapScreenState();
 }
 
+enum _StationFilter { all, good, moderate, unhealthy }
+
 class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with AutomaticKeepAliveClientMixin<StationsMapScreen> {
   Station? _selectedStation;
+  _StationFilter _activeFilter = _StationFilter.all;
   final MapController _mapController = MapController();
 
   @override
@@ -42,6 +47,21 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
       }
     }
     final stationToShow = selectedStation;
+
+    // Apply selected filter to stations shown on the map
+    final displayedStations = stationMarkers.where((station) {
+      switch (_activeFilter) {
+        case _StationFilter.all:
+          return true;
+        case _StationFilter.good:
+          return station.dominantPollutant.category == AirQualityCategory.good;
+        case _StationFilter.moderate:
+          return station.dominantPollutant.category == AirQualityCategory.acceptable;
+        case _StationFilter.unhealthy:
+          final cat = station.dominantPollutant.category;
+          return cat == AirQualityCategory.bad || cat == AirQualityCategory.veryBad || cat == AirQualityCategory.extremelyBad;
+      }
+    }).toList();
 
     return Scaffold(
       body: Stack(
@@ -99,7 +119,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                 }).toList(),
               ),
               MarkerLayer(
-                markers: stationMarkers.map((station) {
+                markers: displayedStations.map((station) {
                   final dominant = station.dominantPollutant;
                   final color = dominant.color;
                   return Marker(
@@ -226,24 +246,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                           ),
                         ),
                       ),
-                      Container(
-                        padding: const EdgeInsets.all(10),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
-                              blurRadius: 8,
-                              offset: const Offset(0, 2),
-                            ),
-                          ],
-                        ),
-                        child: const Icon(
-                          Icons.layers_outlined,
-                          color: Colors.black87,
-                        ),
-                      ),
+                      const SizedBox.shrink(),
                     ],
                   ),
                   const SizedBox(height: 12),
@@ -251,13 +254,49 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                     scrollDirection: Axis.horizontal,
                     child: Row(
                       children: [
-                        _buildFilterChip('All Stations', isSelected: true),
+                              _buildFilterChip(
+                          'All Stations',
+                          isSelected: _activeFilter == _StationFilter.all,
+                          onTap: () {
+                            setState(() {
+                              _activeFilter = _StationFilter.all;
+                              _selectedStation = null;
+                            });
+                          },
+                        ),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Good'),
+                        _buildFilterChip(
+                          'Good',
+                          isSelected: _activeFilter == _StationFilter.good,
+                          onTap: () {
+                            setState(() {
+                              _activeFilter = _StationFilter.good;
+                              _selectedStation = null;
+                            });
+                          },
+                        ),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Moderate'),
+                        _buildFilterChip(
+                          'Moderate',
+                          isSelected: _activeFilter == _StationFilter.moderate,
+                          onTap: () {
+                            setState(() {
+                              _activeFilter = _StationFilter.moderate;
+                              _selectedStation = null;
+                            });
+                          },
+                        ),
                         const SizedBox(width: 8),
-                        _buildFilterChip('Unhealthy'),
+                        _buildFilterChip(
+                          'Unhealthy',
+                          isSelected: _activeFilter == _StationFilter.unhealthy,
+                          onTap: () {
+                            setState(() {
+                              _activeFilter = _StationFilter.unhealthy;
+                              _selectedStation = null;
+                            });
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -270,8 +309,6 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
             bottom: _selectedStation != null ? 280 : 100,
             child: Column(
               children: [
-                _buildMapControl(Icons.my_location, () {}),
-                const SizedBox(height: 16),
                 _buildMapControl(Icons.add, () {
                   _mapController.move(
                     _mapController.camera.center,
@@ -307,28 +344,50 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      decoration: BoxDecoration(
-        color: isSelected ? const Color(0xFF1A1F36) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
+  Widget _buildFilterChip(String label, {bool isSelected = false, VoidCallback? onTap}) {
+    // Map certain labels to global status colors
+    StatusColors? statusColors;
+    final lowLabel = label.toLowerCase();
+
+    // 'All Stations' should show maintenance colors (Fuera de Servicio)
+    if (lowLabel.contains('all') || lowLabel.contains('todas')) {
+      statusColors = AppColors.getColorsForStatus(Status.fueraDeServicio);
+    } else if (lowLabel == 'good') {
+      statusColors = AppColors.getColorsForStatus(Status.good);
+    } else if (lowLabel == 'moderate') {
+      statusColors = AppColors.getColorsForStatus(Status.moderate);
+    } else if (lowLabel == 'unhealthy') {
+      statusColors = AppColors.getColorsForStatus(Status.unhealthy);
+    }
+
+    final Color backgroundColor = isSelected
+        ? const Color(0xFF1A1F36)
+        : (statusColors?.background ?? Colors.white);
+
+    final Color textColor = isSelected ? Colors.white : (statusColors?.text ?? const Color(0xFFD35400));
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: textColor,
+            fontWeight: FontWeight.w600,
+            fontSize: 12,
           ),
-        ],
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected
-              ? Colors.white
-              : const Color(0xFFD35400), // Orange-ish for unselected in image
-          fontWeight: FontWeight.w600,
-          fontSize: 12,
         ),
       ),
     );
