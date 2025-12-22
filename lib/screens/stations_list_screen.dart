@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/station_provider.dart';
-import '../providers/location_provider.dart';
-import 'package:geolocator/geolocator.dart';
 import '../widgets/station_card.dart';
 
 
@@ -15,6 +13,7 @@ class StationsListScreen extends ConsumerStatefulWidget {
 
 class _StationsListScreenState extends ConsumerState<StationsListScreen> with AutomaticKeepAliveClientMixin<StationsListScreen> {
   bool _showSearch = false;
+  bool _isRefreshing = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -70,78 +69,47 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                             ),
                           ],
                         ),
-                        child: IconButton(
-                          tooltip: 'Refresh location',
-                          icon: const Icon(Icons.my_location),
-                          color: const Color(0xFF1A1F36),
-                          onPressed: () async {
-                            final messenger = ScaffoldMessenger.of(context);
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Comprobando permisos de ubicación...')),
-                            );
-
-                            final serviceEnabled = await Geolocator.isLocationServiceEnabled();
-                            if (!serviceEnabled) {
-                              messenger.showSnackBar(
-                                const SnackBar(content: Text('El servicio de ubicación está desactivado en el dispositivo. Actívalo en ajustes o en el emulador.')),
-                              );
-                              debugPrint('Location service disabled');
-                              return;
-                            }
-
-                            LocationPermission permission = await Geolocator.checkPermission();
-                            if (permission == LocationPermission.denied) {
-                              permission = await Geolocator.requestPermission();
-                            }
-
-                            if (permission == LocationPermission.denied) {
-                              messenger.showSnackBar(
-                                const SnackBar(content: Text('Permiso denegado. Concede permiso de ubicación a la app.')),
-                              );
-                              debugPrint('Location permission denied');
-                              return;
-                            }
-
-                            if (permission == LocationPermission.deniedForever) {
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: const Text('Permiso denegado permanentemente. Abre ajustes para permitir la ubicación.'),
-                                  action: SnackBarAction(
-                                    label: 'Abrir ajustes',
-                                    onPressed: () => Geolocator.openAppSettings(),
+                        child: _isRefreshing
+                            ? const SizedBox(
+                                width: 36,
+                                height: 36,
+                                child: Center(
+                                  child: SizedBox(
+                                    width: 18,
+                                    height: 18,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation(Color(0xFF1A1F36)),
+                                    ),
                                   ),
                                 ),
-                              );
-                              debugPrint('Location permission denied forever');
-                              return;
-                            }
-
-                            messenger.showSnackBar(
-                              const SnackBar(content: Text('Obteniendo ubicación...')),
-                            );
-
-                            try {
-                              final latlng = await ref.refresh(currentLocationProvider.future);
-                              if (latlng == null) {
-                                messenger.showSnackBar(
-                                  const SnackBar(content: Text('No se obtuvo ubicación (error).')),
-                                );
-                                debugPrint('currentLocationProvider returned null');
-                              } else {
-                                messenger.showSnackBar(
-                                  SnackBar(content: Text('Ubicación: ${latlng.latitude}, ${latlng.longitude}')),
-                                );
-                                debugPrint('Device location: ${latlng.latitude}, ${latlng.longitude}');
-                              }
-                            } catch (e, st) {
-                              messenger.showSnackBar(
-                                SnackBar(content: Text('Error obteniendo ubicación: $e')),
-                              );
-                              debugPrint('Error getting location: $e');
-                              debugPrintStack(stackTrace: st);
-                            }
-                          },
-                        ),
+                              )
+                            : IconButton(
+                                tooltip: 'Actualizar estaciones',
+                                icon: const Icon(Icons.refresh),
+                                color: const Color(0xFF1A1F36),
+                                onPressed: () async {
+                                  if (_isRefreshing) return;
+                                  setState(() => _isRefreshing = true);
+                                  final messenger = ScaffoldMessenger.of(context);
+                                  messenger.showSnackBar(
+                                    const SnackBar(content: Text('Actualizando estaciones...')),
+                                  );
+                                  try {
+                                    final updatedList = await ref.refresh(airQualityProvider.future);
+                                    messenger.showSnackBar(
+                                      SnackBar(content: Text('Estaciones actualizadas: ${updatedList.length}')),
+                                    );
+                                  } catch (e) {
+                                    messenger.showSnackBar(
+                                      SnackBar(content: Text('Error al actualizar estaciones: $e')),
+                                    );
+                                    debugPrint('Error refreshing airQualityProvider: $e');
+                                  } finally {
+                                    if (mounted) setState(() => _isRefreshing = false);
+                                  }
+                                },
+                              ),
                       ),
                       const SizedBox(width: 8),
                       Container(
@@ -265,67 +233,64 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
               ),
               const SizedBox(height: 20),
               Expanded(
-                child: RefreshIndicator(
-                  onRefresh: () => ref.refresh(airQualityProvider.future),
-                  child: selectedFilter == StationsListFilter.favorites && favorites.isEmpty
-                      ? SingleChildScrollView(
-                          physics: const AlwaysScrollableScrollPhysics(),
-                          child: SizedBox(
-                            height: MediaQuery.of(context).size.height * 0.6,
-                            child: Center(
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Icon(Icons.favorite_border, size: 56, color: Colors.grey[400]),
-                                  const SizedBox(height: 12),
-                                  Text(
-                                    'No hay favoritos seleccionados',
-                                    style: TextStyle(
-                                      color: Colors.grey[600],
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                child: selectedFilter == StationsListFilter.favorites && favorites.isEmpty
+                    ? SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        child: SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.6,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.favorite_border, size: 56, color: Colors.grey[400]),
+                                const SizedBox(height: 12),
+                                Text(
+                                  'No hay favoritos seleccionados',
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
                                   ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    'Marca estaciones con el corazón para verlas aquí.',
-                                    style: TextStyle(color: Colors.grey[500]),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        )
-                      : stationsAsync.when(
-                          data: (stations) => ListView.builder(
-                            itemCount: stations.length,
-                            itemBuilder: (context, index) {
-                              final station = stations[index];
-                              final isFavorite = favorites.contains(station.id);
-                              return StationCard(
-                                station: station,
-                                isFavorite: isFavorite,
-                                onFavoriteToggle: () {
-                                  ref
-                                      .read(favoriteStationsProvider.notifier)
-                                      .toggle(station.id);
-                                },
-                              );
-                            },
-                          ),
-                          loading: () => ListView.builder(
-                            itemCount: 4,
-                            padding: const EdgeInsets.only(top: 0, bottom: 16),
-                            itemBuilder: (context, index) => const StationCardSkeleton(),
-                          ),
-                          error: (error, stack) => Center(
-                            child: Text(
-                              'No se pudieron cargar las estaciones',
-                              style: TextStyle(color: Colors.grey[600]),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  'Marca estaciones con el corazón para verlas aquí.',
+                                  style: TextStyle(color: Colors.grey[500]),
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                ),
+                      )
+                    : stationsAsync.when(
+                        data: (stations) => ListView.builder(
+                          itemCount: stations.length,
+                          itemBuilder: (context, index) {
+                            final station = stations[index];
+                            final isFavorite = favorites.contains(station.id);
+                            return StationCard(
+                              station: station,
+                              isFavorite: isFavorite,
+                              onFavoriteToggle: () {
+                                ref
+                                    .read(favoriteStationsProvider.notifier)
+                                    .toggle(station.id);
+                              },
+                            );
+                          },
+                        ),
+                        loading: () => ListView.builder(
+                          itemCount: 4,
+                          padding: const EdgeInsets.only(top: 0, bottom: 16),
+                          itemBuilder: (context, index) => const StationCardSkeleton(),
+                        ),
+                        error: (error, stack) => Center(
+                          child: Text(
+                            'No se pudieron cargar las estaciones',
+                            style: TextStyle(color: Colors.grey[600]),
+                          ),
+                        ),
+                      ),
               ),
             ],
           ),
