@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'utils/app_colors.dart';
 import 'screens/main_shell.dart';
+import 'screens/stations_list_screen.dart';
+import 'zoom_splash_screen.dart';
 
 void main() {
   runApp(
@@ -25,7 +27,10 @@ class MyApp extends StatelessWidget {
         fontFamily: 'Spline Sans',
         scaffoldBackgroundColor: AppColors.backgroundGray,
       ),
-      home: const MainShell(),
+      home: ZoomSplashScreen(),
+      routes: {
+        '/home': (context) => const MainShell(),
+      },
     );
   }
 }
