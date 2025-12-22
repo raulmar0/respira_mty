@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 
 class NotificationsScreen extends StatefulWidget {
@@ -17,7 +18,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
     super.build(context);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8),
+      backgroundColor: AppColors.backgroundGray,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
@@ -28,9 +29,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     "Notificaciones",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Color(0xFF0D1B2A)),
+                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
                   ),
                   TextButton(
                     onPressed: () {},

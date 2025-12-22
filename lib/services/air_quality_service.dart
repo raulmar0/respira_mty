@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/station.dart';
 import '../data/station_locations.dart';
+import 'package:flutter/foundation.dart';
 
 class AirQualityService {
   Future<List<Station>> fetchStations() async {
@@ -13,7 +14,7 @@ class AirQualityService {
         final reportUrl = 'https://aire.nl.gob.mx/SIMA2017reportes/ReporteDiariosimaIcars.php?estacion1=${location.apiCode}';
         final reportResponse = await http.get(Uri.parse(reportUrl));
         if (reportResponse.statusCode != 200) {
-          print('Error fetching report for ${location.apiCode}: ${reportResponse.statusCode}');
+          debugPrint('Error fetching report for ${location.apiCode}: ${reportResponse.statusCode}');
           continue;
         }
 
@@ -24,7 +25,7 @@ class AirQualityService {
         final concUrl = 'https://aire.nl.gob.mx/SIMA2017reportes/api_conc.php';
         final concResponse = await http.get(Uri.parse(concUrl));
         if (concResponse.statusCode != 200) {
-          print('Error fetching conc for ${location.apiCode}: ${concResponse.statusCode}');
+          debugPrint('Error fetching conc for ${location.apiCode}: ${concResponse.statusCode}');
           continue;
         }
         final parametrosAlerta = jsonDecode(utf8.decode(concResponse.bodyBytes)) as List<dynamic>;
@@ -33,10 +34,10 @@ class AirQualityService {
         final paramUrl = 'http://aire.nl.gob.mx/SIMA2017reportes/api_indice.php';
         final paramResponse = await http.get(Uri.parse(paramUrl));
         if (paramResponse.statusCode != 200) {
-          print('Error fetching param for ${location.apiCode}: ${paramResponse.statusCode}');
+          debugPrint('Error fetching param for ${location.apiCode}: ${paramResponse.statusCode}');
           continue;
         }
-        final parametrosUI = jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>;
+        final parametrosUI = jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>; 
 
         // Parse pollutants from parametrosUI
         double? pm10, pm25, o3, no2, so2, co;
@@ -87,24 +88,26 @@ class AirQualityService {
         stations.add(station);
 
         // Log the station
-        print('------------');
-        print('${station.name}');
-        print('api_conc.php:');
-        print('{');
+        debugPrint('------------');
+        debugPrint(station.name);
+        debugPrint('api_conc.php:');
+        debugPrint('{');
         final prettyConc = JsonEncoder.withIndent('  ').convert(parametrosAlerta);
-        print(prettyConc);
-        print('}');
-        print('api_indice.php');
-        print('{');
+        debugPrint(prettyConc);
+        debugPrint('}');
+        debugPrint('api_indice.php');
+        debugPrint('{');
         final prettyParam = JsonEncoder.withIndent('  ').convert(parametrosUI);
-        print(prettyParam);
-        print('}');
-        print('model');
-        print('----------------------');
+        debugPrint(prettyParam);
+        debugPrint('}');
+        debugPrint('model');
+        debugPrint('----------------------');
 
       } catch (e) {
-        print('Error fetching data for ${location.apiCode}: $e');
+        debugPrint('Error fetching data for ${location.apiCode}: $e');
       }
+
+
     }
 
     return stations;

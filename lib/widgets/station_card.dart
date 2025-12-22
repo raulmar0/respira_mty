@@ -18,8 +18,9 @@ class StationCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final dominant = station.dominantPollutant;
-    final statusColor = dominant.color;
-    final badgeColor = AirQualityScale.getBackgroundColorForCategory(dominant.category);
+    final statusTextColor = dominant.statusTextColor;
+    final badgeColor = dominant.statusBackground;
+    final circleColor = dominant.statusColors.circle;
     final favorite = isFavorite ?? station.isFavorite;
 
     return Container(
@@ -78,7 +79,7 @@ class StationCard extends StatelessWidget {
                           ? 'N/D'
                           : '${dominant.displayValue} ${dominant.name}',
                       style: TextStyle(
-                        color: statusColor,
+                        color: statusTextColor,
                         fontWeight: FontWeight.bold,
                         fontSize: 12,
                       ),
@@ -91,62 +92,90 @@ class StationCard extends StatelessWidget {
           const SizedBox(height: 8),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              Row(
-                children: [
-                  Container(
-                    width: 8,
-                    height: 8,
-                    decoration: BoxDecoration(
-                      color: statusColor,
-                      shape: BoxShape.circle,
+              Expanded(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: BoxDecoration(
+                        color: circleColor, // use status circle color for the dot
+                        shape: BoxShape.circle,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    station.status,
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(width: 8),
+                    // Allow status to wrap to two lines without pushing the update time
+                    Expanded(
+                      child: Text(
+                        station.status,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          color: Colors.grey[600],
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
               if (station.updatedAt != null)
-                Text(
-                  _relativeTime(station.updatedAt!),
-                  style: TextStyle(
-                    color: Colors.grey[500],
-                    fontSize: 11,
-                    fontWeight: FontWeight.w500,
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: IntrinsicWidth(
+                    child: Text(
+                      _relativeTime(station.updatedAt!),
+                      textAlign: TextAlign.right,
+                      softWrap: false,
+                      style: TextStyle(
+                        color: Colors.grey[500],
+                        fontSize: 11,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
                   ),
                 ),
             ],
           ),
           const SizedBox(height: 20),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: station.pollutantsFromUI.map((pollutant) {
-                final parameter = pollutant['parameter'] as String;
-                final value = pollutant['value'] as double?;
-                final label = pollutant['label'] as String?;
-                final displayLabel = _getDisplayLabel(parameter);
-                final unit = pollutant['unit'] as String? ?? AirQualityScale.getUnitForParameter(parameter);
-                final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
-                final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: PollutantChip(
-                    label: displayLabel,
-                    value: displayValue,
-                    unit: unit,
-                    valueColor: color,
-                  ),
-                );
-              }).toList(),
-            ),
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final count = station.pollutantsFromUI.length;
+              final spacing = 8.0 * (count - 1);
+              final available = constraints.maxWidth - spacing;
+              final computedWidth = (available / count).clamp(40.0, 72.0);
+              final compact = computedWidth < 46.0;
+
+              final list = station.pollutantsFromUI;
+              return Row(
+                children: List.generate(list.length, (i) {
+                  final pollutant = list[i];
+                  final isLast = i == list.length - 1;
+                  final parameter = pollutant['parameter'] as String;
+                  final value = pollutant['value'] as double?;
+                  final displayLabel = _getDisplayLabel(parameter);
+                  final unit = pollutant['unit'] as String? ?? AirQualityScale.getUnitForParameter(parameter);
+                  final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
+                  final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
+
+                  return Padding(
+                    padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                    child: PollutantChip(
+                      label: displayLabel,
+                      value: displayValue,
+                      unit: unit,
+                      valueColor: color,
+                      width: (computedWidth - 1.0).clamp(40.0, 72.0),
+                      compact: compact,
+                    ),
+                  );
+                }),
+              );
+            },
           ),
         ],
       ),

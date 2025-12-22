@@ -5,6 +5,8 @@ class PollutantChip extends StatelessWidget {
   final String value;
   final Color? valueColor;
   final String unit;
+  final double? width;
+  final bool compact;
 
   const PollutantChip({
     super.key,
@@ -12,13 +14,20 @@ class PollutantChip extends StatelessWidget {
     required this.value,
     this.valueColor,
     this.unit = 'µg/m³',
+    this.width,
+    this.compact = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    final w = width ?? (compact ? 44.0 : 50.0);
+    final labelSize = compact ? 9.0 : 10.0;
+    final valueSize = compact ? 12.0 : 14.0;
+    final unitSize = compact ? 9.0 : 10.0;
+
     return Container(
-      width: 50,
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      width: w,
+      padding: EdgeInsets.symmetric(vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -35,25 +44,25 @@ class PollutantChip extends StatelessWidget {
           Text(
             label,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: labelSize,
               fontWeight: FontWeight.bold,
               color: Colors.grey[400],
             ),
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: compact ? 2 : 4),
           Text(
             value,
             style: TextStyle(
-              fontSize: 14,
+              fontSize: valueSize,
               fontWeight: FontWeight.bold,
               color: valueColor ?? Colors.black87,
             ),
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: compact ? 0 : 2),
           Text(
             unit,
             style: TextStyle(
-              fontSize: 10,
+              fontSize: unitSize,
               color: Colors.grey[400],
               fontWeight: FontWeight.w600,
             ),

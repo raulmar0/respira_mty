@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 /// Categorías de calidad del aire según la tabla del Índice Aire y Salud de NL
 enum AirQualityCategory {
@@ -28,6 +29,12 @@ class DominantPollutant {
 
   Color get color => AirQualityScale.getColorForCategory(category);
   String get status => AirQualityScale.getStatusForCategory(category);
+
+  // New: enum and color helpers for status badges
+  Status get statusEnum => AirQualityScale.getStatusEnumForCategory(category);
+  StatusColors get statusColors => AirQualityScale.getStatusColorsForCategory(category);
+  Color get statusBackground => statusColors.background;
+  Color get statusTextColor => statusColors.text;
   
   /// Devuelve el valor formateado para mostrar en el mapa
   String get displayValue {
@@ -213,17 +220,17 @@ class AirQualityScale {
   static Color getColorForCategory(AirQualityCategory category) {
     switch (category) {
       case AirQualityCategory.good:
-        return const Color(0xFF00E400); // Verde
+        return AppColors.categoryGood;
       case AirQualityCategory.acceptable:
-        return const Color(0xFFFFFF00); // Amarillo
+        return AppColors.categoryAcceptable;
       case AirQualityCategory.bad:
-        return const Color(0xFFFF7E00); // Naranja
+        return AppColors.categoryBad;
       case AirQualityCategory.veryBad:
-        return const Color(0xFFFF0000); // Rojo
+        return AppColors.categoryVeryBad;
       case AirQualityCategory.extremelyBad:
-        return const Color(0xFF8F3F97); // Morado
+        return AppColors.categoryExtreme;
       case AirQualityCategory.maintenance:
-        return const Color(0xFF9E9E9E); // Gris
+        return AppColors.categoryMaintenance;
     }
   }
 
@@ -231,17 +238,17 @@ class AirQualityScale {
   static Color getBackgroundColorForCategory(AirQualityCategory category) {
     switch (category) {
       case AirQualityCategory.good:
-        return const Color(0xFFE8F5E9); // Verde claro
+        return AppColors.categoryGoodLight;
       case AirQualityCategory.acceptable:
-        return const Color(0xFFFFFDE7); // Amarillo claro
+        return AppColors.categoryAcceptableLight;
       case AirQualityCategory.bad:
-        return const Color(0xFFFFF3E0); // Naranja claro
+        return AppColors.categoryBadLight;
       case AirQualityCategory.veryBad:
-        return const Color(0xFFFFEBEE); // Rojo claro
+        return AppColors.categoryVeryBadLight;
       case AirQualityCategory.extremelyBad:
-        return const Color(0xFFF3E5F5); // Morado claro
+        return AppColors.categoryExtremeLight;
       case AirQualityCategory.maintenance:
-        return const Color(0xFFF5F5F5); // Gris claro
+        return AppColors.categoryMaintenanceLight;
     }
   }
 
@@ -261,6 +268,30 @@ class AirQualityScale {
       case AirQualityCategory.maintenance:
         return 'Uno o más parámetros fuera de servicio';
     }
+  }
+
+  /// Devuelve el `Status` enum correspondiente a una `AirQualityCategory`.
+  static Status getStatusEnumForCategory(AirQualityCategory category) {
+    switch (category) {
+      case AirQualityCategory.good:
+        return Status.good;
+      case AirQualityCategory.acceptable:
+        return Status.moderate;
+      case AirQualityCategory.bad:
+        return Status.unhealthyForSensitive;
+      case AirQualityCategory.veryBad:
+        return Status.unhealthy;
+      case AirQualityCategory.extremelyBad:
+        return Status.veryUnhealthy;
+      case AirQualityCategory.maintenance:
+        return Status.fueraDeServicio;
+    }
+  }
+
+  /// Devuelve los colores (background + text) para una categoría
+  static StatusColors getStatusColorsForCategory(AirQualityCategory category) {
+    final status = getStatusEnumForCategory(category);
+    return AppColors.getColorsForStatus(status);
   }
 }
 

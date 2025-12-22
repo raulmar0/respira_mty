@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/app_colors.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
@@ -6,7 +7,7 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF4F6F8), // Mismo fondo gris claro
+      backgroundColor: AppColors.backgroundGray, // Mismo fondo gris claro
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -14,10 +15,9 @@ class SettingsScreen extends StatelessWidget {
           icon: const Icon(Icons.arrow_back_ios_new, color: Colors.black),
           onPressed: () {},
         ),
-        title: const Text(
+        title: Text(
           "Ajustes",
-          style: TextStyle(
-              color: Colors.black, fontWeight: FontWeight.bold, fontSize: 24),
+          style: TextStyle(color: AppColors.textPrimary, fontWeight: FontWeight.bold, fontSize: 24),
         ),
         centerTitle: false,
         titleSpacing: 0,
@@ -43,7 +43,7 @@ class SettingsScreen extends StatelessWidget {
                   subtitle: "Notificar cuando el aire sea peligroso",
                   trailing: Switch(
                     value: true,
-                    activeColor: Colors.white,
+                    activeThumbColor: Colors.white,
                     activeTrackColor: const Color(0xFF5CE57E),
                     onChanged: (v) {},
                   ),
