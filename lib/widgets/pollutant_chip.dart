@@ -21,6 +21,7 @@ class PollutantChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final w = width ?? (compact ? 44.0 : 50.0);
     final labelSize = compact ? 9.0 : 10.0;
     final valueSize = compact ? 12.0 : 14.0;
@@ -30,11 +31,11 @@ class PollutantChip extends StatelessWidget {
       width: w,
       padding: EdgeInsets.symmetric(vertical: compact ? 6 : 8),
       decoration: BoxDecoration(
-        color: AppColors.pollutantChipBackground,
+        color: theme.brightness == Brightness.dark ? Colors.grey[800] : AppColors.pollutantChipBackground,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: theme.shadowColor.withValues(alpha: 0.06),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
@@ -47,7 +48,7 @@ class PollutantChip extends StatelessWidget {
             style: TextStyle(
               fontSize: labelSize,
               fontWeight: FontWeight.bold,
-              color: Colors.grey[400],
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
             ),
           ),
           SizedBox(height: compact ? 2 : 4),
@@ -56,7 +57,7 @@ class PollutantChip extends StatelessWidget {
             style: TextStyle(
               fontSize: valueSize,
               fontWeight: FontWeight.bold,
-              color: valueColor ?? Colors.black87,
+              color: valueColor ?? theme.textTheme.bodyLarge?.color,
             ),
           ),
           SizedBox(height: compact ? 0 : 2),
@@ -64,7 +65,7 @@ class PollutantChip extends StatelessWidget {
             unit,
             style: TextStyle(
               fontSize: unitSize,
-              color: Colors.grey[400],
+              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
               fontWeight: FontWeight.w600,
             ),
           ),

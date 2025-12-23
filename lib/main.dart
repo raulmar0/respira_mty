@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'utils/app_colors.dart';
 import 'screens/main_shell.dart';
-import 'screens/stations_list_screen.dart';
+import 'providers/theme_provider.dart';
 import 'zoom_splash_screen.dart';
 
 void main() {
@@ -13,20 +12,17 @@ void main() {
   );
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = ref.watch(themeProvider);
+
     return MaterialApp(
       title: 'Respira MTY',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF4CAF50)),
-        useMaterial3: true,
-        fontFamily: 'Spline Sans',
-        scaffoldBackgroundColor: AppColors.backgroundGray,
-      ),
+      theme: theme,
       home: ZoomSplashScreen(),
       routes: {
         '/home': (context) => const MainShell(),

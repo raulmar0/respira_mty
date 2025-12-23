@@ -23,3 +23,13 @@ class LanguageNotifier extends Notifier<AppLanguage> {
 }
 
 final languageProvider = NotifierProvider<LanguageNotifier, AppLanguage>(LanguageNotifier.new);
+
+/// Notifier-based provider for dark mode
+class DarkModeNotifier extends Notifier<bool> {
+  @override
+  bool build() => false; // Default to light mode
+
+  void toggle() => state = !state;
+}
+
+final darkModeProvider = NotifierProvider<DarkModeNotifier, bool>(DarkModeNotifier.new);
