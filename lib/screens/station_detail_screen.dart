@@ -4,6 +4,7 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
+import '../utils/app_colors.dart';
 
 class StationDetailScreenLight extends StatefulWidget {
   final Station station;
@@ -32,9 +33,6 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
 
   @override
   Widget build(BuildContext context) {
-    // Definición de colores para Light Mode
-    const Color textDark = Color(0xFF111827); // Texto casi negro
-
     final station = widget.station; // shorthand
     final municipality = station.name.split(',').first.trim();
     final dominant = station.dominantPollutant;
@@ -42,8 +40,18 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
     final statusBg = dominant.statusBackground;
     final statusCircle = dominant.statusColors.circle;
 
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    // Dynamic colors from theme
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final primaryTextColor = theme.textTheme.headlineSmall?.color ?? (isDark ? Colors.white : Colors.black87);
+    final secondaryTextColor = theme.textTheme.bodySmall?.color ?? (isDark ? Colors.grey[400] : Colors.grey[600]);
+    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF111827));
+
     return Scaffold(
-      backgroundColor: const Color(0xFFF3F5F7),
+      backgroundColor: backgroundColor,
 
       body: Stack(
         children: [
@@ -55,10 +63,10 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                   // --- CABECERA ---
                   Text(
                     municipality,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 32,
                       fontWeight: FontWeight.w800, // Extra bold
-                      color: textDark,
+                      color: primaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 12),
@@ -107,7 +115,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: textDark,
+                        color: primaryTextColor,
                       ),
                     ),
                   ),
@@ -124,48 +132,48 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                     ),
                     child: Stack(
                       children: [
-                        FlutterMap(
-                          mapController: _mapController,
-                          options: MapOptions(
-                            initialCenter: LatLng(
+                AbsorbPointer(
+                  absorbing: true,
+                  child: FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: LatLng(
+                        station.latitude,
+                        station.longitude,
+                      ),
+                      initialZoom: _zoom,
+                      onPositionChanged: (position, _) {
+                        setState(() {
+                          if (position.center != null) _center = position.center as LatLng;
+                          if (position.zoom != null) _zoom = position.zoom as double;
+                        });
+                      },
+                    ),
+                    children: [
+                      TileLayer(
+                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        userAgentPackageName: 'com.example.respira_mty',
+                      ),
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: LatLng(
                               station.latitude,
                               station.longitude,
                             ),
-                            initialZoom: _zoom,
-                            onPositionChanged: (position, _) {
-                              setState(() {
-                                if (position.center != null)
-                                  _center = position.center as LatLng;
-                                if (position.zoom != null)
-                                  _zoom = position.zoom as double;
-                              });
-                            },
+                            width: 48,
+                            height: 48,
+                            child: Icon(
+                              Icons.location_on,
+                              color: AppColors.aqiGreen,
+                              size: 36,
+                            ),
                           ),
-                          children: [
-                            TileLayer(
-                              urlTemplate:
-                                  'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'com.example.respira_mty',
-                            ),
-                            MarkerLayer(
-                              markers: [
-                                Marker(
-                                  point: LatLng(
-                                    station.latitude,
-                                    station.longitude,
-                                  ),
-                                  width: 48,
-                                  height: 48,
-                                  child: const Icon(
-                                    Icons.location_on,
-                                    color: Color(0xFF36E27B),
-                                    size: 36,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
 
                         // Controles de Zoom
                         Positioned(
@@ -182,9 +190,11 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                   _mapController.move(_center, newZoom);
                                   setState(() => _zoom = newZoom);
                                 },
-                                child: const _ZoomButton(
-                                  key: Key('zoom_in'),
+                                child: _ZoomButton(
+                                  key: const Key('zoom_in'),
                                   icon: Icons.add,
+                                  backgroundColor: cardColor,
+                                  iconColor: iconColor,
                                 ),
                               ),
                               const SizedBox(height: 8),
@@ -197,9 +207,11 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                   _mapController.move(_center, newZoom);
                                   setState(() => _zoom = newZoom);
                                 },
-                                child: const _ZoomButton(
-                                  key: Key('zoom_out'),
+                                child: _ZoomButton(
+                                  key: const Key('zoom_out'),
                                   icon: Icons.remove,
+                                  backgroundColor: cardColor,
+                                  iconColor: iconColor,
                                 ),
                               ),
                             ],
@@ -212,87 +224,89 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                   const SizedBox(height: 32),
 
                   // --- TOGGLE SWITCH (Contaminantes / Clima) ---
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: const Color(
-                        0xFFE2E8F0,
-                      ), // Gris de fondo del switch
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => showPollutants = true),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: showPollutants
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: showPollutants
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Text(
-                                "Contaminantes",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
+                  // Usamos colores de 'mantenimiento' para mejor contraste y adaptabilidad a modo oscuro
+                  Builder(builder: (ctx) {
+                    final maintenanceBgLight = AppColors.statusFueraServicioBackground;
+                    final maintenanceTextLight = AppColors.statusFueraServicioText;
+                    final maintenanceBgDark = AppColors.statusFueraServicioCircle.withOpacity(0.12);
+                    final switchBg = isDark ? maintenanceBgDark : maintenanceBgLight;
+
+                    return Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: switchBg,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => showPollutants = true),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
                                   color: showPollutants
-                                      ? const Color(0xFF111827)
-                                      : const Color(0xFF64748B),
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+                                      ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: showPollutants
+                                      ? [
+                                          BoxShadow(
+                                            color: theme.shadowColor.withOpacity(0.06),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  "Contaminantes",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () => setState(() => showPollutants = false),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                              decoration: BoxDecoration(
-                                color: !showPollutants
-                                    ? Colors.white
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(12),
-                                boxShadow: !showPollutants
-                                    ? [
-                                        BoxShadow(
-                                          color: Colors.black.withOpacity(0.05),
-                                          blurRadius: 4,
-                                          offset: const Offset(0, 2),
-                                        ),
-                                      ]
-                                    : null,
-                              ),
-                              child: Text(
-                                "Clima",
-                                textAlign: TextAlign.center,
-                                style: TextStyle(
+                          Expanded(
+                            child: GestureDetector(
+                              onTap: () => setState(() => showPollutants = false),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(vertical: 12),
+                                decoration: BoxDecoration(
                                   color: !showPollutants
-                                      ? const Color(0xFF111827)
-                                      : const Color(0xFF64748B),
-                                  fontWeight: FontWeight.w600,
-                                  fontSize: 14,
+                                      ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
+                                      : Colors.transparent,
+                                  borderRadius: BorderRadius.circular(12),
+                                  boxShadow: !showPollutants
+                                      ? [
+                                          BoxShadow(
+                                            color: theme.shadowColor.withOpacity(0.06),
+                                            blurRadius: 4,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : null,
+                                ),
+                                child: Text(
+                                  "Clima",
+                                  textAlign: TextAlign.center,
+                                  style: TextStyle(
+                                    color: !showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
+                                    fontWeight: FontWeight.w600,
+                                    fontSize: 14,
+                                  ),
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
+                        ],
+                      ),
+                    );
+                  }),
 
                   const SizedBox(height: 24),
 
@@ -352,11 +366,11 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: cardColor,
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.03),
+                                color: theme.shadowColor.withOpacity(0.06),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -364,15 +378,15 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
-                            children: const [
+                            children: [
                               Text(
                                 'No hay datos de clima disponibles',
-                                style: TextStyle(fontWeight: FontWeight.w700),
+                                style: TextStyle(fontWeight: FontWeight.w700, color: primaryTextColor),
                               ),
-                              SizedBox(height: 6),
+                              const SizedBox(height: 6),
                               Text(
                                 'Intenta volver más tarde o verifica los permisos de ubicación.',
-                                style: TextStyle(color: Color(0xFF6B7280)),
+                                style: TextStyle(color: secondaryTextColor),
                               ),
                             ],
                           ),
@@ -387,55 +401,28 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
               ),
             ),
           ),
-          Positioned(
-            top: MediaQuery.of(context).padding.top + 8,
-            left: 8,
-            child: Container(
-              margin: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 5,
-                    offset: Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: IconButton(
-                icon: const Icon(
-                  Icons.arrow_back,
-                  size: 20,
-                  color: Color(0xFF111827),
-                ),
-                onPressed: () => Navigator.of(context).pop(),
-                padding: EdgeInsets.zero,
-              ),
-            ),
-          ),
 
           Positioned(
             top: MediaQuery.of(context).padding.top + 8,
             right: 8,
             child: Container(
               margin: const EdgeInsets.all(4),
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: cardColor,
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black12,
+                    color: theme.shadowColor.withOpacity(0.08),
                     blurRadius: 5,
-                    offset: Offset(0, 2),
+                    offset: const Offset(0, 2),
                   ),
                 ],
               ),
               child: IconButton(
-                icon: const Icon(
+                icon: Icon(
                   Icons.share_outlined,
                   size: 20,
-                  color: Color(0xFF111827),
+                  color: iconColor,
                 ),
                 onPressed: () {},
                 padding: EdgeInsets.zero,
@@ -469,15 +456,21 @@ class PollutantCardLight extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final localCardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final localPrimaryTextColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+    final localSecondaryTextColor = theme.textTheme.bodySmall?.color ?? (isDark ? Colors.grey[400] : Colors.grey[600]);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: localCardColor,
         borderRadius: BorderRadius.circular(16),
         // Sombra sutil
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.03),
+            color: theme.shadowColor.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -504,19 +497,19 @@ class PollutantCardLight extends StatelessWidget {
                 children: [
                   Text(
                     name,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.w700,
-                      color: Color(0xFF111827),
+                      color: localPrimaryTextColor,
                     ),
                   ),
                   const SizedBox(height: 4),
                   Text(
                     symbol.toUpperCase(),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF9CA3AF),
+                      color: localSecondaryTextColor,
                     ),
                   ),
                 ],
@@ -529,19 +522,19 @@ class PollutantCardLight extends StatelessWidget {
             children: [
               Text(
                 value,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF1F2937),
+                  color: localPrimaryTextColor,
                 ),
               ),
               const SizedBox(width: 4),
               Text(
                 unit,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
-                  color: Color(0xFF6B7280),
+                  color: localSecondaryTextColor,
                 ),
               ),
             ],
@@ -555,25 +548,28 @@ class PollutantCardLight extends StatelessWidget {
 // 2. Botón de Zoom (Redondo blanco)
 class _ZoomButton extends StatelessWidget {
   final IconData icon;
-  const _ZoomButton({super.key, required this.icon});
+  final Color? backgroundColor;
+  final Color? iconColor;
+  const _ZoomButton({super.key, required this.icon, this.backgroundColor, this.iconColor});
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       width: 36,
       height: 36,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: backgroundColor ?? (theme.cardTheme.color ?? theme.colorScheme.surface),
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.1),
+            color: theme.shadowColor.withOpacity(0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      child: Icon(icon, color: const Color(0xFF4B5563), size: 20),
+      child: Icon(icon, color: iconColor ?? theme.iconTheme.color ?? const Color(0xFF4B5563), size: 20),
     );
   }
 }
@@ -606,7 +602,7 @@ class _PulsingIndicatorState extends State<PulsingIndicator>
 
   @override
   Widget build(BuildContext context) {
-    const primary = Color(0xFF36E27B); // Verde brillante
+    final primary = AppColors.aqiGreen; // Verde brillante (theme neutral)
     return SizedBox(
       width: 14,
       height: 14,
@@ -619,7 +615,7 @@ class _PulsingIndicatorState extends State<PulsingIndicator>
             child: ScaleTransition(
               scale: Tween(begin: 1.0, end: 2.5).animate(_controller),
               child: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: primary,
                 ),

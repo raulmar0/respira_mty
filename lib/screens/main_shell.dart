@@ -6,21 +6,28 @@ import 'stations_list_screen.dart';
 import 'notifications_screen.dart';
 import 'settings_screen.dart';
 
-class MainShell extends ConsumerWidget {
+class MainShell extends ConsumerStatefulWidget {
   const MainShell({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MainShell> createState() => _MainShellState();
+}
+
+class _MainShellState extends ConsumerState<MainShell> {
+  final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(4, (_) => GlobalKey<NavigatorState>());
+
+  @override
+  Widget build(BuildContext context) {
     final selectedIndex = ref.watch(selectedTabProvider);
 
     return Scaffold(
       body: IndexedStack(
         index: selectedIndex,
-        children: const [
-          StationsMapScreen(),
-          StationsListScreen(),
-          NotificationsScreen(),
-          SettingsScreen(),
+        children: [
+          _buildTabNavigator(_navigatorKeys[0], const StationsMapScreen()),
+          _buildTabNavigator(_navigatorKeys[1], const StationsListScreen()),
+          _buildTabNavigator(_navigatorKeys[2], const NotificationsScreen()),
+          _buildTabNavigator(_navigatorKeys[3], const SettingsScreen()),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
@@ -29,7 +36,23 @@ class MainShell extends ConsumerWidget {
         selectedItemColor: const Color(0xFF5CE57E),
         unselectedItemColor: Colors.grey,
         showUnselectedLabels: true,
-        onTap: (index) => ref.read(selectedTabProvider.notifier).setIndex(index),
+        onTap: (index) {
+          final currentIndex = ref.read(selectedTabProvider);
+
+          // If tapping the current tab, pop its navigator to root
+          if (index == currentIndex) {
+            _navigatorKeys[index].currentState?.popUntil((route) => route.isFirst);
+            return;
+          }
+
+          // Otherwise switch tab
+          ref.read(selectedTabProvider.notifier).setIndex(index);
+
+          // If switching to List, ensure the List tab is at its root
+          if (index == 1) {
+            _navigatorKeys[1].currentState?.popUntil((route) => route.isFirst);
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
           BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
@@ -37,6 +60,13 @@ class MainShell extends ConsumerWidget {
           BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
         ],
       ),
+    );
+  }
+
+  Widget _buildTabNavigator(GlobalKey<NavigatorState> key, Widget child) {
+    return Navigator(
+      key: key,
+      onGenerateRoute: (settings) => MaterialPageRoute(builder: (_) => child),
     );
   }
 }

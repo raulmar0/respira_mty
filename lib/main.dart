@@ -27,7 +27,6 @@ class MyApp extends ConsumerWidget {
       home: ZoomSplashScreen(),
       routes: {
         '/home': (context) => const MainShell(),
-        '/stationDetail': (context) => const StationDetailScreenLight(),
       },
     );
   }
