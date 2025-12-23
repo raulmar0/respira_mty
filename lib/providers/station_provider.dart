@@ -55,6 +55,20 @@ final stationsListFilterProvider =
       StationsListFilterNotifier.new,
     );
 
+/// Sorting options for the stations list
+enum StationsSort { plusQuality, minusQuality, az, za }
+
+class StationsSortNotifier extends Notifier<StationsSort> {
+  @override
+  StationsSort build() => StationsSort.plusQuality;
+
+  void set(StationsSort s) => state = s;
+}
+
+final stationsSortProvider = NotifierProvider<StationsSortNotifier, StationsSort>(
+  StationsSortNotifier.new,
+);
+
 final filteredStationsProvider = Provider<AsyncValue<List<Station>>>((ref) {
   final stationsAsync = ref.watch(airQualityProvider);
   final locationAsync = ref.watch(currentLocationProvider);
@@ -102,6 +116,27 @@ final filteredStationsProvider = Provider<AsyncValue<List<Station>>>((ref) {
       }
 
       result.sort((a, b) => haversineDistance(a).compareTo(haversineDistance(b)));
+    }
+
+    // Apply sorting option if not 'nearest' (nearest already sorts by distance)
+    final sort = ref.watch(stationsSortProvider);
+    if (filter != StationsListFilter.nearest) {
+      switch (sort) {
+        case StationsSort.plusQuality:
+          // Lowest AQI (best quality) first
+          result.sort((a, b) => a.aqi.compareTo(b.aqi));
+          break;
+        case StationsSort.minusQuality:
+          // Highest AQI (worst quality) first
+          result.sort((a, b) => b.aqi.compareTo(a.aqi));
+          break;
+        case StationsSort.az:
+          result.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+          break;
+        case StationsSort.za:
+          result.sort((a, b) => b.name.toLowerCase().compareTo(a.name.toLowerCase()));
+          break;
+      }
     }
 
     return List<Station>.unmodifiable(result);

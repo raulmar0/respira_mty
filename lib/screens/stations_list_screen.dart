@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
+import '../widgets/sort_button.dart';
 
 
 class StationsListScreen extends ConsumerStatefulWidget {
@@ -108,6 +109,14 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                                 },
                               ),
                       ),
+                      const SizedBox(width: 8),
+
+                      // Sort button (custom design)
+                      Container(
+                        padding: const EdgeInsets.all(0),
+                        child: const SortButton(),
+                      ),
+
                       const SizedBox(width: 8),
                       Container(
                         padding: const EdgeInsets.all(2),
