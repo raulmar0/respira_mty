@@ -302,17 +302,27 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
     bool isSelected = false,
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final selectedColor = isDark ? theme.colorScheme.primary.withOpacity(0.18) : const Color(0xFF1A1F36);
+    final unselectedColor = theme.cardTheme.color ?? (isDark ? theme.colorScheme.surface : Colors.white);
+    final selectedTextColor = isDark ? theme.colorScheme.primary : Colors.white;
+    final unselectedTextColor = isDark ? Colors.grey[300] : Colors.grey[600];
+    final selectedShadow = isDark
+        ? theme.colorScheme.primary.withOpacity(0.18)
+        : const Color(0xFF1A1F36).withOpacity(0.3);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? const Color(0xFF1A1F36) : Colors.white,
+          color: isSelected ? selectedColor : unselectedColor,
           borderRadius: BorderRadius.circular(25),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: const Color(0xFF1A1F36).withValues(alpha: 0.3),
+                    color: selectedShadow,
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -321,8 +331,8 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
         ),
         child: Text(
           label,
-          style: TextStyle(
-            color: isSelected ? Colors.white : Colors.grey[600],
+          style: theme.textTheme.labelLarge?.copyWith(
+            color: isSelected ? selectedTextColor : unselectedTextColor,
             fontWeight: FontWeight.w600,
           ),
         ),

@@ -17,6 +17,7 @@ class StationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final dominant = station.dominantPollutant;
     final statusTextColor = dominant.statusTextColor;
     final badgeColor = dominant.statusBackground;
@@ -26,15 +27,21 @@ class StationCard extends StatelessWidget {
     final municipality = nameParts.first.trim();
     final zone = nameParts.length > 1 ? nameParts.sublist(1).join(',').trim() : '';
 
+    // Card background and shadow adapt to theme
+    final cardColor = theme.cardTheme.color ?? (theme.brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white);
+    final cardShadow = theme.brightness == Brightness.dark
+        ? Colors.black.withOpacity(0.4)
+        : Colors.black.withOpacity(0.05);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: cardShadow,
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -57,10 +64,7 @@ class StationCard extends StatelessWidget {
                         municipality,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 18),
                       ),
                     ),
                     IconButton(
@@ -69,7 +73,7 @@ class StationCard extends StatelessWidget {
                       icon: Icon(
                         favorite ? Icons.favorite : Icons.favorite_border,
                         size: 20,
-                        color: favorite ? const Color(0xFF4CAF50) : Colors.grey,
+                        color: favorite ? const Color(0xFF4CAF50) : (theme.brightness == Brightness.dark ? Colors.grey[600] : Colors.grey),
                       ),
                     ),
                   ],
@@ -85,7 +89,7 @@ class StationCard extends StatelessWidget {
                   ),
                   child: Text(
                     zone,
-                    style: TextStyle(
+                    style: theme.textTheme.labelMedium?.copyWith(
                       color: statusTextColor,
                       fontWeight: FontWeight.bold,
                       fontSize: 12,
@@ -115,8 +119,8 @@ class StationCard extends StatelessWidget {
                   station.status,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    color: Colors.grey[600],
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
                     fontSize: 12,
                     fontWeight: FontWeight.w500,
                   ),
@@ -193,16 +197,21 @@ class StationCardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final bg = Colors.grey[200]!;
+    final theme = Theme.of(context);
+    final bg = theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.grey[200]!;
+    final cardColor = theme.cardTheme.color ?? (theme.brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white);
+    final cardShadow = theme.brightness == Brightness.dark
+        ? Colors.black.withOpacity(0.4)
+        : Colors.black.withOpacity(0.03);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cardColor,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: cardShadow,
             blurRadius: 6,
             offset: const Offset(0, 3),
           ),
