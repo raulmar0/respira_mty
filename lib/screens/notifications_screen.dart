@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/settings_provider.dart';
+import 'settings_screen.dart';
 
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsScreen extends ConsumerStatefulWidget {
   const NotificationsScreen({super.key});
 
   @override
-  State<NotificationsScreen> createState() => _NotificationsScreenState();
+  ConsumerState<NotificationsScreen> createState() => _NotificationsScreenState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> with AutomaticKeepAliveClientMixin<NotificationsScreen> {
+class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with AutomaticKeepAliveClientMixin<NotificationsScreen> {
   @override
   bool get wantKeepAlive => true;
 
@@ -16,6 +19,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
+    final isCriticalEnabled = ref.watch(criticalAlertsProvider);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -59,6 +63,30 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
               const SizedBox(height: 20),
 
               // 3. Sección HOY
+              if (!isCriticalEnabled)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Alertas críticas desactivadas. Actívalas en Ajustes para recibir notificaciones importantes.',
+                          style: theme.textTheme.bodySmall,
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                        child: const Text('Ir a Ajustes'),
+                      )
+                    ],
+                  ),
+                ),
               const Text("HOY", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
               const SizedBox(height: 10),
 

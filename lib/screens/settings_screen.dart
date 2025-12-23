@@ -10,6 +10,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
     final isDarkMode = ref.watch(darkModeProvider);
+    final isCriticalEnabled = ref.watch(criticalAlertsProvider);
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -46,10 +47,16 @@ class SettingsScreen extends ConsumerWidget {
                   title: "Alertas Críticas",
                   subtitle: "Notificar cuando el aire sea peligroso",
                   trailing: Switch(
-                    value: true,
+                    value: isCriticalEnabled,
                     activeThumbColor: Colors.white,
                     activeTrackColor: const Color(0xFF5CE57E),
-                    onChanged: (v) {},
+                    onChanged: (v) {
+                      ref.read(criticalAlertsProvider.notifier).setEnabled(v);
+                      final messenger = ScaffoldMessenger.of(context);
+                      messenger.showSnackBar(
+                        SnackBar(content: Text(v ? 'Alertas críticas activadas' : 'Alertas críticas desactivadas')),
+                      );
+                    },
                   ),
                 ),
               ],

@@ -33,3 +33,15 @@ class DarkModeNotifier extends Notifier<bool> {
 }
 
 final darkModeProvider = NotifierProvider<DarkModeNotifier, bool>(DarkModeNotifier.new);
+
+/// Notifier-based provider for critical alerts setting
+class CriticalAlertsNotifier extends Notifier<bool> {
+  @override
+  bool build() => false; // Default: disabled
+
+  void setEnabled(bool enabled) => state = enabled;
+
+  void toggle() => state = !state;
+}
+
+final criticalAlertsProvider = NotifierProvider<CriticalAlertsNotifier, bool>(CriticalAlertsNotifier.new);

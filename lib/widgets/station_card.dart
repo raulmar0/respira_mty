@@ -80,22 +80,21 @@ class StationCard extends StatelessWidget {
                 ),
               ),
 
-              if (zone.isNotEmpty)
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: badgeColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    zone,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      color: statusTextColor,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: badgeColor,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  zone.isNotEmpty ? zone : municipality,
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: statusTextColor,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 12,
                   ),
                 ),
+              ),
             ],
           ),
 
