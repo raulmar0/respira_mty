@@ -153,6 +153,6 @@ final lastUpdateProvider = Provider<DateTime?>((ref) {
       return dates.first;
     },
     loading: () => null,
-    error: (_, __) => null,
+    error: (error, stack) => null,
   );
 });

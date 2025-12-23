@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
 
     // Ensure Scaffold has a bottomNavigationBar
-    final scaffoldFinder = find.byWidgetPredicate((w) => w is Scaffold && (w as Scaffold).bottomNavigationBar != null);
+    final scaffoldFinder = find.byWidgetPredicate((w) => w is Scaffold && w.bottomNavigationBar != null);
     expect(scaffoldFinder, findsOneWidget);
 
     // Tap 'List' tab to show list

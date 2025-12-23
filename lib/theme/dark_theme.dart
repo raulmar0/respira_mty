@@ -141,14 +141,14 @@ final ThemeData darkTheme = ThemeData(
 
   // Switch theme
   switchTheme: SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return Colors.white;
       }
       return const Color(0xFF606060);
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF4CAF50);
       }
       return const Color(0xFF404040);

@@ -128,7 +128,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black.withOpacity(0.03)),
+                      border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
                     ),
                     child: Stack(
                       children: [
@@ -144,8 +144,8 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                       initialZoom: _zoom,
                       onPositionChanged: (position, _) {
                         setState(() {
-                          if (position.center != null) _center = position.center as LatLng;
-                          if (position.zoom != null) _zoom = position.zoom as double;
+                          _center = position.center;
+                          _zoom = position.zoom;
                         });
                       },
                     ),
@@ -228,7 +228,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                   Builder(builder: (ctx) {
                     final maintenanceBgLight = AppColors.statusFueraServicioBackground;
                     final maintenanceTextLight = AppColors.statusFueraServicioText;
-                    final maintenanceBgDark = AppColors.statusFueraServicioCircle.withOpacity(0.12);
+                    final maintenanceBgDark = AppColors.statusFueraServicioCircle.withValues(alpha: 0.12);
                     final switchBg = isDark ? maintenanceBgDark : maintenanceBgLight;
 
                     return Container(
@@ -252,7 +252,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                   boxShadow: showPollutants
                                       ? [
                                           BoxShadow(
-                                            color: theme.shadowColor.withOpacity(0.06),
+                                            color: theme.shadowColor.withValues(alpha: 0.06),
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),
                                           ),
@@ -284,7 +284,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                   boxShadow: !showPollutants
                                       ? [
                                           BoxShadow(
-                                            color: theme.shadowColor.withOpacity(0.06),
+                                            color: theme.shadowColor.withValues(alpha: 0.06),
                                             blurRadius: 4,
                                             offset: const Offset(0, 2),
                                           ),
@@ -370,7 +370,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                             borderRadius: BorderRadius.circular(16),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.shadowColor.withOpacity(0.06),
+                                color: theme.shadowColor.withValues(alpha: 0.06),
                                 blurRadius: 10,
                                 offset: const Offset(0, 4),
                               ),
@@ -412,7 +412,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                 shape: BoxShape.circle,
                 boxShadow: [
                   BoxShadow(
-                    color: theme.shadowColor.withOpacity(0.08),
+                    color: theme.shadowColor.withValues(alpha: 0.08),
                     blurRadius: 5,
                     offset: const Offset(0, 2),
                   ),
@@ -470,7 +470,7 @@ class PollutantCardLight extends StatelessWidget {
         // Sombra sutil
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.03),
+            color: theme.shadowColor.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -563,7 +563,7 @@ class _ZoomButton extends StatelessWidget {
         shape: BoxShape.circle,
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.1),
+            color: theme.shadowColor.withValues(alpha: 0.1),
             blurRadius: 4,
             offset: const Offset(0, 2),
           ),

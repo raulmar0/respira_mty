@@ -68,7 +68,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                   margin: const EdgeInsets.only(bottom: 12),
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   decoration: BoxDecoration(
-                    color: theme.colorScheme.primary.withOpacity(0.08),
+                    color: theme.colorScheme.primary.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Row(
@@ -172,7 +172,7 @@ class _NotificationCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: theme.shadowColor.withOpacity(0.03),
+            color: theme.shadowColor.withValues(alpha: 0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -261,7 +261,7 @@ class _FilterChip extends StatelessWidget {
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: selectedBgColor.withOpacity(0.24),
+                  color: selectedBgColor.withValues(alpha: 0.24),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 )

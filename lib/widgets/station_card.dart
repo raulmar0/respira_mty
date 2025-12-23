@@ -37,8 +37,8 @@ class StationCard extends StatelessWidget {
             ? const Color(0xFF1E1E1E)
             : Colors.white);
     final cardShadow = theme.brightness == Brightness.dark
-        ? Colors.black.withOpacity(0.4)
-        : Colors.black.withOpacity(0.05);
+        ? Colors.black.withValues(alpha: 0.4)
+        : Colors.black.withValues(alpha: 0.05);
 
     return Material(
       color: Colors.transparent,
@@ -244,8 +244,8 @@ class StationCardSkeleton extends StatelessWidget {
             ? const Color(0xFF1E1E1E)
             : Colors.white);
     final cardShadow = theme.brightness == Brightness.dark
-        ? Colors.black.withOpacity(0.4)
-        : Colors.black.withOpacity(0.03);
+        ? Colors.black.withValues(alpha: 0.4)
+        : Colors.black.withValues(alpha: 0.03);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       padding: const EdgeInsets.all(16),

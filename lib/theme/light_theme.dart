@@ -135,21 +135,21 @@ final ThemeData lightTheme = ThemeData(
       fontFamily: 'Spline Sans',
     ),
     hintStyle: TextStyle(
-      color: AppColors.textSecondary.withOpacity(0.7),
+      color: AppColors.textSecondary.withValues(alpha: 0.7),
       fontFamily: 'Spline Sans',
     ),
   ),
 
   // Switch theme
   switchTheme: SwitchThemeData(
-    thumbColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    thumbColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return Colors.white;
       }
       return Colors.grey[400];
     }),
-    trackColor: MaterialStateProperty.resolveWith((states) {
-      if (states.contains(MaterialState.selected)) {
+    trackColor: WidgetStateProperty.resolveWith((states) {
+      if (states.contains(WidgetState.selected)) {
         return const Color(0xFF4CAF50);
       }
       return Colors.grey[300];

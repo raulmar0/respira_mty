@@ -30,7 +30,7 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
     return SafeArea(
       child: Container(
         decoration: BoxDecoration(
-          color: theme.cardTheme.color ?? theme.dialogBackgroundColor,
+          color: theme.cardTheme.color ?? theme.dialogTheme.backgroundColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         ),
         padding: const EdgeInsets.all(24.0),
@@ -56,7 +56,7 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
             const SizedBox(height: 8),
             Text(
               "Elige el idioma para la interfaz de la aplicación.",
-              style: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodyMedium?.color?.withOpacity(0.9)),
+              style: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.9)),
             ),
             const SizedBox(height: 24),
 
@@ -106,7 +106,7 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         decoration: BoxDecoration(
-          color: isSelected ? activeColor.withOpacity(0.08) : theme.cardTheme.color ?? Colors.white,
+          color: isSelected ? activeColor.withValues(alpha: 0.08) : theme.cardTheme.color ?? Colors.white,
           border: Border.all(
             color: isSelected ? activeColor : (theme.dividerTheme.color ?? Colors.grey.shade300),
             width: 1.5,

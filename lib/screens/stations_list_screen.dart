@@ -61,7 +61,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withOpacity(0.06),
+                              color: theme.shadowColor.withValues(alpha: 0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -125,7 +125,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.shadowColor.withOpacity(0.06),
+                              color: theme.shadowColor.withValues(alpha: 0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -313,13 +313,13 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final selectedColor = isDark ? theme.colorScheme.primary.withOpacity(0.18) : const Color(0xFF1A1F36);
+    final selectedColor = isDark ? theme.colorScheme.primary.withValues(alpha: 0.18) : const Color(0xFF1A1F36);
     final unselectedColor = theme.cardTheme.color ?? (isDark ? theme.colorScheme.surface : Colors.white);
     final selectedTextColor = isDark ? theme.colorScheme.primary : Colors.white;
     final unselectedTextColor = isDark ? Colors.grey[300] : Colors.grey[600];
     final selectedShadow = isDark
-        ? theme.colorScheme.primary.withOpacity(0.18)
-        : const Color(0xFF1A1F36).withOpacity(0.3);
+        ? theme.colorScheme.primary.withValues(alpha: 0.18)
+        : const Color(0xFF1A1F36).withValues(alpha: 0.3);
 
     return GestureDetector(
       onTap: onTap,

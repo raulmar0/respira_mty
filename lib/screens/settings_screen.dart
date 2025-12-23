@@ -129,7 +129,7 @@ class SettingsScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.cloud, size: 12, color: theme.iconTheme.color?.withOpacity(0.6)),
+                      Icon(Icons.cloud, size: 12, color: theme.iconTheme.color?.withValues(alpha: 0.6)),
                       const SizedBox(width: 4),
                       Text("Datos provistos por SIMA N.L.", style: theme.textTheme.labelSmall),
                     ],
