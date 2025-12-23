@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../utils/app_colors.dart';
 
 
 class NotificationsScreen extends StatefulWidget {
@@ -16,9 +15,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundGray,
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
@@ -31,12 +31,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> with Automati
                 children: [
                   Text(
                     "Notificaciones",
-                    style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                   TextButton(
                     onPressed: () {},
-                    // Mantenemos el verde solo para la acción de "Marcar leídos"
-                    child: const Text("Marcar leídos", style: TextStyle(color: Color(0xFF5CE57E), fontWeight: FontWeight.w600)),
+                    // Mantenemos el color primario para la acción
+                    child: Text("Marcar leídos", style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
                   )
                 ],
               ),
@@ -135,15 +135,16 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 15),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardTheme.color ?? theme.colorScheme.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: theme.shadowColor.withOpacity(0.03),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -172,9 +173,9 @@ class _NotificationCard extends StatelessWidget {
                     width: 10,
                     height: 10,
                     decoration: BoxDecoration(
-                      color: const Color(0xFF5CE57E),
+                      color: theme.colorScheme.primary,
                       shape: BoxShape.circle,
-                      border: Border.all(color: Colors.white, width: 1.5),
+                      border: Border.all(color: theme.cardTheme.color ?? Colors.white, width: 1.5),
                     ),
                   ),
                 )
@@ -189,14 +190,14 @@ class _NotificationCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                    Text(time, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+                    Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Text(time, style: theme.textTheme.bodySmall?.copyWith(color: theme.textTheme.bodySmall?.color)),
                   ],
                 ),
                 const SizedBox(height: 5),
                 Text(
                   body,
-                  style: TextStyle(color: Colors.grey[600], height: 1.4, fontSize: 13),
+                  style: theme.textTheme.bodyMedium?.copyWith(height: 1.4, fontSize: 13),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -218,10 +219,10 @@ class _FilterChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Definimos los colores basados en la imagen de referencia
-    const Color selectedBgColor = Color(0xFF1A2138);
-    const Color unselectedBgColor = Colors.white;
-    const Color unselectedTextColor = Color(0xFF8E8E93);
+    final theme = Theme.of(context);
+    final Color selectedBgColor = theme.colorScheme.primary;
+    final Color unselectedBgColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final Color unselectedTextColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
 
     return Container(
       margin: const EdgeInsets.only(right: 12),
@@ -232,7 +233,7 @@ class _FilterChip extends StatelessWidget {
         boxShadow: isSelected
             ? [
                 BoxShadow(
-                  color: selectedBgColor.withValues(alpha: 0.3),
+                  color: selectedBgColor.withOpacity(0.24),
                   blurRadius: 8,
                   offset: const Offset(0, 4),
                 )
@@ -242,7 +243,7 @@ class _FilterChip extends StatelessWidget {
       child: Text(
         label,
         style: TextStyle(
-          color: isSelected ? Colors.white : unselectedTextColor,
+          color: isSelected ? (theme.colorScheme.onPrimary) : unselectedTextColor,
           fontWeight: FontWeight.w600,
           fontSize: 14,
         ),

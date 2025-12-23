@@ -28,6 +28,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
     final stationsAsync = ref.watch(filteredStationsProvider);
     final favorites = ref.watch(favoriteStationsProvider);
     final selectedFilter = ref.watch(stationsListFilterProvider);
@@ -35,7 +36,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
     final lastUpdate = ref.watch(lastUpdateProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20.0),
@@ -46,31 +47,27 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text(
+                  Text(
                     'Estaciones',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1A1F36),
-                    ),
+                    style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                   Row(
                     children: [
                       Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.cardTheme.color ?? theme.colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: theme.shadowColor.withOpacity(0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: _isRefreshing
-                            ? const SizedBox(
+                            ? SizedBox(
                                 width: 36,
                                 height: 36,
                                 child: Center(
@@ -79,7 +76,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                                     height: 18,
                                     child: CircularProgressIndicator(
                                       strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation(Color(0xFF1A1F36)),
+                                      valueColor: AlwaysStoppedAnimation<Color?>(theme.iconTheme.color ?? Colors.white),
                                     ),
                                   ),
                                 ),
@@ -87,7 +84,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                             : IconButton(
                                 tooltip: 'Actualizar estaciones',
                                 icon: const Icon(Icons.refresh),
-                                color: const Color(0xFF1A1F36),
+                                color: theme.iconTheme.color,
                                 onPressed: () async {
                                   if (_isRefreshing) return;
                                   setState(() => _isRefreshing = true);
@@ -115,11 +112,11 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                       Container(
                         padding: const EdgeInsets.all(2),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.cardTheme.color ?? theme.colorScheme.surface,
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
+                              color: theme.shadowColor.withOpacity(0.06),
                               blurRadius: 10,
                               offset: const Offset(0, 4),
                             ),
@@ -128,7 +125,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                         child: IconButton(
                           icon: Icon(
                             _showSearch ? Icons.close : Icons.search,
-                            color: const Color(0xFF1A1F36),
+                            color: theme.iconTheme.color,
                           ),
                           onPressed: () {
                             setState(() {

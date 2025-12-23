@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
+import '../widgets/language_selection_sheet.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -67,27 +68,13 @@ class SettingsScreen extends ConsumerWidget {
                   title: "Idioma",
                   trailingText: currentLang.displayName,
                   showArrow: true,
-                  onTap: () async {
-                    final chosen = await showDialog<AppLanguage>(
+                  onTap: () {
+                    showModalBottomSheet(
                       context: context,
-                      builder: (ctx) => SimpleDialog(
-                        title: const Text('Idioma'),
-                        children: [
-                          SimpleDialogOption(
-                            onPressed: () => Navigator.pop(ctx, AppLanguage.spanish),
-                            child: const Text('Español'),
-                          ),
-                          SimpleDialogOption(
-                            onPressed: () => Navigator.pop(ctx, AppLanguage.english),
-                            child: const Text('English'),
-                          ),
-                        ],
-                      ),
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (ctx) => const LanguageSelectionSheet(),
                     );
-
-                    if (chosen != null) {
-                      ref.read(languageProvider.notifier).setLanguage(chosen);
-                    }
                   },
                 ),
 

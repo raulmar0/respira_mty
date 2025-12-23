@@ -30,9 +30,10 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final theme = Theme.of(context);
     final stationsAsync = ref.watch(airQualityProvider);
     final favoriteIds = ref.watch(favoriteStationsProvider);
-    const stationLocationAccent = Color(0xFF1A73E8);
+    final stationLocationAccent = theme.colorScheme.primary;
     final stationMarkers = stationsAsync.maybeWhen(
       data: (value) => value,
       orElse: () => const [],
@@ -93,7 +94,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                     height: 36,
                     child: Container(
                       decoration: BoxDecoration(
-                        color: Colors.white,
+                        color: theme.cardTheme.color ?? theme.colorScheme.surface,
                         shape: BoxShape.circle,
                         border: Border.all(
                           color: stationLocationAccent,
@@ -101,7 +102,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.15),
+                            color: theme.shadowColor.withOpacity(0.15),
                             blurRadius: 6,
                             offset: const Offset(0, 3),
                           ),
@@ -134,12 +135,12 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                       },
                       child: Container(
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: theme.cardTheme.color ?? theme.colorScheme.surface,
                           shape: BoxShape.circle,
                           border: Border.all(color: color, width: 3),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.2),
+                              color: theme.shadowColor.withOpacity(0.20),
                               blurRadius: 6,
                               offset: const Offset(0, 3),
                             ),
