@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'screens/main_shell.dart';
 import 'providers/theme_provider.dart';
 import 'zoom_splash_screen.dart';
+import 'screens/station_detail_screen.dart';
 
 void main() {
   runApp(
@@ -26,6 +27,7 @@ class MyApp extends ConsumerWidget {
       home: ZoomSplashScreen(),
       routes: {
         '/home': (context) => const MainShell(),
+        '/stationDetail': (context) => const StationDetailScreenLight(),
       },
     );
   }

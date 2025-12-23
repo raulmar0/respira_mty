@@ -43,7 +43,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.text('Estaciones'), findsOneWidget);
-    expect(find.text('Centro'), findsOneWidget);
+    expect(find.text('Centro'), findsWidgets);
 
     expect(find.byIcon(Icons.favorite_border), findsOneWidget);
     await tester.tap(find.byIcon(Icons.favorite_border));

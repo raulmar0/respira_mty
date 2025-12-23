@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
 import 'pollutant_chip.dart';
+import '../screens/station_detail_screen.dart';
 
 class StationCard extends StatelessWidget {
   final Station station;
@@ -25,151 +26,188 @@ class StationCard extends StatelessWidget {
     final favorite = isFavorite ?? station.isFavorite;
     final nameParts = station.name.split(',');
     final municipality = nameParts.first.trim();
-    final zone = nameParts.length > 1 ? nameParts.sublist(1).join(',').trim() : '';
+    final zone = nameParts.length > 1
+        ? nameParts.sublist(1).join(',').trim()
+        : '';
 
     // Card background and shadow adapt to theme
-    final cardColor = theme.cardTheme.color ?? (theme.brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white);
+    final cardColor =
+        theme.cardTheme.color ??
+        (theme.brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white);
     final cardShadow = theme.brightness == Brightness.dark
         ? Colors.black.withOpacity(0.4)
         : Colors.black.withOpacity(0.05);
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: cardColor,
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: cardShadow,
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Top row: municipality + favorite on the left, zone badge on the right (aligned vertically)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Text(
-                        municipality,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 18),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: onFavoriteToggle,
-                      visualDensity: VisualDensity.compact,
-                      icon: Icon(
-                        favorite ? Icons.favorite : Icons.favorite_border,
-                        size: 20,
-                        color: favorite ? const Color(0xFF4CAF50) : (theme.brightness == Brightness.dark ? Colors.grey[600] : Colors.grey),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: badgeColor,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Text(
-                  zone.isNotEmpty ? zone : municipality,
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    color: statusTextColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 12,
-                  ),
-                ),
+        onTap: () {
+          Navigator.of(context, rootNavigator: false).push(
+            MaterialPageRoute(
+              builder: (c) => StationDetailScreenLight(station: station),
+            ),
+          );
+        },
+        child: Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: cardColor,
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: cardShadow,
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-
-          const SizedBox(height: 4),
-
-          // Second row: status dot and status text
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 8,
-                height: 8,
-                decoration: BoxDecoration(
-                  color: circleColor,
-                  shape: BoxShape.circle,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  station.status,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: theme.brightness == Brightness.dark ? Colors.grey[400] : Colors.grey[600],
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
+              // Top row: municipality + favorite on the left, zone badge on the right (aligned vertically)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Expanded(
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Expanded(
+                          child: Text(
+                            municipality,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                            ),
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: onFavoriteToggle,
+                          visualDensity: VisualDensity.compact,
+                          icon: Icon(
+                            favorite ? Icons.favorite : Icons.favorite_border,
+                            size: 20,
+                            color: favorite
+                                ? const Color(0xFF4CAF50)
+                                : (theme.brightness == Brightness.dark
+                                      ? Colors.grey[600]
+                                      : Colors.grey),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badgeColor,
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      zone.isNotEmpty ? zone : municipality,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        color: statusTextColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 4),
+
+              // Second row: status dot and status text
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Container(
+                    width: 8,
+                    height: 8,
+                    decoration: BoxDecoration(
+                      color: circleColor,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      station.status,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.brightness == Brightness.dark
+                            ? Colors.grey[400]
+                            : Colors.grey[600],
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 20),
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final count = station.pollutantsFromUI.length;
+                  final spacing = 8.0 * (count - 1);
+                  final available = constraints.maxWidth - spacing;
+                  final computedWidth = (available / count).clamp(40.0, 72.0);
+                  final compact = computedWidth < 46.0;
+
+                  final list = station.pollutantsFromUI;
+                  final widgetList = List.generate(list.length, (i) {
+                    final pollutant = list[i];
+                    final isLast = i == list.length - 1;
+                    final parameter = pollutant['parameter'] as String;
+                    final value = pollutant['value'] as double?;
+                    final displayLabel = _getDisplayLabel(parameter);
+                    final unit =
+                        pollutant['unit'] as String? ??
+                        AirQualityScale.getUnitForParameter(parameter);
+                    final color = value != null
+                        ? AirQualityScale.getColorForParameter(parameter, value)
+                        : Colors.grey;
+                    final displayValue = value != null
+                        ? (parameter.toUpperCase().contains('CO')
+                              ? value.toStringAsFixed(2)
+                              : value.toStringAsFixed(0))
+                        : 'N/D';
+
+                    return Padding(
+                      padding: EdgeInsets.only(right: isLast ? 0 : 8),
+                      child: PollutantChip(
+                        label: displayLabel,
+                        value: displayValue,
+                        unit: unit,
+                        valueColor: color,
+                        width: (computedWidth - 1.0).clamp(40.0, 72.0),
+                        compact: compact,
+                      ),
+                    );
+                  });
+
+                  return Row(children: widgetList);
+                },
               ),
             ],
           ),
-
-          const SizedBox(height: 20),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              final count = station.pollutantsFromUI.length;
-              final spacing = 8.0 * (count - 1);
-              final available = constraints.maxWidth - spacing;
-              final computedWidth = (available / count).clamp(40.0, 72.0);
-              final compact = computedWidth < 46.0;
-
-              final list = station.pollutantsFromUI;
-              return Row(
-                children: List.generate(list.length, (i) {
-                  final pollutant = list[i];
-                  final isLast = i == list.length - 1;
-                  final parameter = pollutant['parameter'] as String;
-                  final value = pollutant['value'] as double?;
-                  final displayLabel = _getDisplayLabel(parameter);
-                  final unit = pollutant['unit'] as String? ?? AirQualityScale.getUnitForParameter(parameter);
-                  final color = value != null ? AirQualityScale.getColorForParameter(parameter, value) : Colors.grey;
-                  final displayValue = value != null ? (parameter.toUpperCase().contains('CO') ? value.toStringAsFixed(2) : value.toStringAsFixed(0)) : 'N/D';
-
-                  return Padding(
-                    padding: EdgeInsets.only(right: isLast ? 0 : 8),
-                    child: PollutantChip(
-                      label: displayLabel,
-                      value: displayValue,
-                      unit: unit,
-                      valueColor: color,
-                      width: (computedWidth - 1.0).clamp(40.0, 72.0),
-                      compact: compact,
-                    ),
-                  );
-                }),
-              );
-            },
-          ),
-        ],
+        ),
       ),
     );
   }
-
-
 
   String _getDisplayLabel(String parameter) {
     switch (parameter.toUpperCase()) {
@@ -197,8 +235,14 @@ class StationCardSkeleton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final bg = theme.brightness == Brightness.dark ? Colors.grey[800]! : Colors.grey[200]!;
-    final cardColor = theme.cardTheme.color ?? (theme.brightness == Brightness.dark ? const Color(0xFF1E1E1E) : Colors.white);
+    final bg = theme.brightness == Brightness.dark
+        ? Colors.grey[800]!
+        : Colors.grey[200]!;
+    final cardColor =
+        theme.cardTheme.color ??
+        (theme.brightness == Brightness.dark
+            ? const Color(0xFF1E1E1E)
+            : Colors.white);
     final cardShadow = theme.brightness == Brightness.dark
         ? Colors.black.withOpacity(0.4)
         : Colors.black.withOpacity(0.03);
@@ -222,18 +266,9 @@ class StationCardSkeleton extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Container(
-                  height: 18,
-                  color: bg,
-                ),
-              ),
+              Expanded(child: Container(height: 18, color: bg)),
               const SizedBox(width: 12),
-              Container(
-                width: 56,
-                height: 24,
-                color: bg,
-              ),
+              Container(width: 56, height: 24, color: bg),
             ],
           ),
           const SizedBox(height: 12),
