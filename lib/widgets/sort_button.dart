@@ -17,10 +17,6 @@ enum SortOption { plusQuality, minusQuality, aToZ, zToA }
 
 class _SortButtonState extends ConsumerState<SortButton> {
   SortOption _selectedOption = SortOption.plusQuality;
-  bool _isOpen = false;
-
-  // Key for the button so we can resolve its RenderBox without using a Builder context
-  final GlobalKey _buttonKey = GlobalKey();
 
   // Tailwind-inspired palette (kept as requested)
   final Color primaryColor = const Color(0xFF141C35);
@@ -30,7 +26,6 @@ class _SortButtonState extends ConsumerState<SortButton> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     // Keep local selection in sync with provider (reads current every build)
     final current = ref.watch(stationsSortProvider);
@@ -39,66 +34,32 @@ class _SortButtonState extends ConsumerState<SortButton> {
     // Trigger style: neutral by default, highlighted when menu is open
     final neutralBg = theme.cardTheme.color ?? theme.colorScheme.surface;
     final neutralIcon = theme.iconTheme.color ?? Colors.black;
-    final activeBg = isDark ? surfaceDark : primaryColor;
-    final activeIcon = Colors.white;
 
-    // Custom menu using showMenu so we can control _isOpen without blocking taps
-    return GestureDetector(
-      key: _buttonKey,
-      behavior: HitTestBehavior.translucent,
-      onTap: () async {
-        setState(() => _isOpen = true);
-
-        // compute position BEFORE awaiting anything to avoid using context across async gap
-        final buttonContext = _buttonKey.currentContext;
-        if (buttonContext == null) return;
-        final RenderBox button = buttonContext.findRenderObject() as RenderBox;
-        final RenderBox overlay = Overlay.of(context).context.findRenderObject() as RenderBox;
-        final RelativeRect position = RelativeRect.fromRect(
-          Rect.fromPoints(
-            button.localToGlobal(Offset.zero, ancestor: overlay),
-            button.localToGlobal(button.size.bottomRight(Offset.zero), ancestor: overlay),
-          ),
-          Offset.zero & overlay.size,
+    // Use PopupMenuButton for easier menu handling
+    return PopupMenuButton<SortOption>(
+      onSelected: (SortOption selected) {
+        setState(() {
+          _selectedOption = selected;
+        });
+        final target = _mapOptionToStationsSort(selected);
+        ref.read(stationsSortProvider.notifier).set(target);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('${_labelForOption(selected)} seleccionado')),
         );
-
-        // Safe: we pass the State's `context` and we check `mounted` immediately after awaiting.
-        // ignore: use_build_context_synchronously
-        final selected = await showMenu<SortOption>(
-          context: context,
-          position: position.shift(const Offset(0, 50)),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-          elevation: 4,
-          items: [
-            _buildMenuItem(SortOption.plusQuality, "+ Calidad", theme),
-            _buildMenuItem(SortOption.minusQuality, "- Calidad", theme),
-            _buildMenuItem(SortOption.aToZ, "A → Z", theme),
-            _buildMenuItem(SortOption.zToA, "Z → A", theme),
-          ],
-        );
-
-        if (!mounted) return;
-
-        if (selected != null) {
-          setState(() {
-            _selectedOption = selected;
-          });
-          final target = _mapOptionToStationsSort(selected);
-          ref.read(stationsSortProvider.notifier).set(target);
-          // Safe: checked `mounted` above; ignore analyzer false-positive about context across async gaps
-          // ignore: use_build_context_synchronously
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('${_labelForOption(selected)} seleccionado')),
-          );
-        }
-
-        setState(() => _isOpen = false);
       },
+      itemBuilder: (BuildContext context) => [
+        _buildMenuItem(SortOption.plusQuality, "+ Calidad", theme),
+        _buildMenuItem(SortOption.minusQuality, "- Calidad", theme),
+        _buildMenuItem(SortOption.aToZ, "A → Z", theme),
+        _buildMenuItem(SortOption.zToA, "Z → A", theme),
+      ],
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      elevation: 4,
       child: Container(
         width: 48,
         height: 48,
         decoration: BoxDecoration(
-          color: _isOpen ? activeBg : neutralBg,
+          color: neutralBg,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -108,7 +69,7 @@ class _SortButtonState extends ConsumerState<SortButton> {
             ),
           ],
         ),
-        child: Icon(Icons.sort, color: _isOpen ? activeIcon : neutralIcon),
+        child: Icon(Icons.sort, color: neutralIcon),
       ),
     );
   }

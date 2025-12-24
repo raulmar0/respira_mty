@@ -9,7 +9,7 @@ class SettingsScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
-    final isDarkMode = ref.watch(darkModeProvider);
+    final themeModeAsync = ref.watch(themeModeProvider);
     final isCriticalEnabled = ref.watch(criticalAlertsProvider);
     final theme = Theme.of(context);
 
@@ -29,116 +29,157 @@ class SettingsScreen extends ConsumerWidget {
         centerTitle: false,
         titleSpacing: 0,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+      body: themeModeAsync.when(
+        data: (themeModeOption) => SingleChildScrollView(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
 
 
-            // 2. Sección Notificaciones
-            const _SectionHeader(title: "NOTIFICACIONES"),
-            _SettingsGroup(
-              children: [
-                _SettingsTile(
-                  icon: Icons.warning_amber_rounded,
-                  iconColor: Colors.redAccent,
-                  iconBg: const Color(0xFFFDE8E8),
-                  title: "Alertas Críticas",
-                  subtitle: "Notificar cuando el aire sea peligroso",
-                  trailing: Switch(
-                    value: isCriticalEnabled,
-                    activeThumbColor: Colors.white,
-                    activeTrackColor: const Color(0xFF5CE57E),
-                    onChanged: (v) {
-                      ref.read(criticalAlertsProvider.notifier).setEnabled(v);
-                      final messenger = ScaffoldMessenger.of(context);
-                      messenger.showSnackBar(
-                        SnackBar(content: Text(v ? 'Alertas críticas activadas' : 'Alertas críticas desactivadas')),
+              // 2. Sección Notificaciones
+              const _SectionHeader(title: "NOTIFICACIONES"),
+              _SettingsGroup(
+                children: [
+                  _SettingsTile(
+                    icon: Icons.warning_amber_rounded,
+                    iconColor: Colors.redAccent,
+                    iconBg: const Color(0xFFFDE8E8),
+                    title: "Alertas Críticas",
+                    subtitle: "Notificar cuando el aire sea peligroso",
+                    trailing: Switch(
+                      value: isCriticalEnabled,
+                      activeThumbColor: Colors.white,
+                      activeTrackColor: const Color(0xFF5CE57E),
+                      onChanged: (v) {
+                        ref.read(criticalAlertsProvider.notifier).setEnabled(v);
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.showSnackBar(
+                          SnackBar(content: Text(v ? 'Alertas críticas activadas' : 'Alertas críticas desactivadas')),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 25),
+
+              // 3. Sección Visualización
+              const _SectionHeader(title: "VISUALIZACIÓN"),
+              _SettingsGroup(
+                children: [
+
+                  _SettingsTile(
+                    icon: Icons.language,
+                    iconColor: Colors.blue,
+                    iconBg: const Color(0xFFE3F2FD),
+                    title: "Idioma",
+                    trailingText: currentLang.displayName,
+                    showArrow: true,
+                    onTap: () {
+                      showModalBottomSheet(
+                        context: context,
+                        isScrollControlled: true,
+                        backgroundColor: Colors.transparent,
+                        builder: (ctx) => const LanguageSelectionSheet(),
                       );
                     },
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 25),
 
-            // 3. Sección Visualización
-            const _SectionHeader(title: "VISUALIZACIÓN"),
-            _SettingsGroup(
-              children: [
-
-                _SettingsTile(
-                  icon: Icons.language,
-                  iconColor: Colors.blue,
-                  iconBg: const Color(0xFFE3F2FD),
-                  title: "Idioma",
-                  trailingText: currentLang.displayName,
-                  showArrow: true,
-                  onTap: () {
-                    showModalBottomSheet(
-                      context: context,
-                      isScrollControlled: true,
-                      backgroundColor: Colors.transparent,
-                      builder: (ctx) => const LanguageSelectionSheet(),
-                    );
-                  },
-                ),
-
-                _SettingsTile(
-                  icon: Icons.dark_mode_outlined,
-                  iconColor: Colors.blueGrey,
-                  iconBg: const Color(0xFFECEFF1),
-                  title: "Modo Oscuro",
-                  trailing: Switch(
-                    value: isDarkMode,
-                    onChanged: (value) {
-                      ref.read(darkModeProvider.notifier).toggle();
-                    },
+                  _SettingsTile(
+                    icon: Icons.dark_mode_outlined,
+                    iconColor: Colors.blueGrey,
+                    iconBg: const Color(0xFFECEFF1),
+                    title: "Tema",
+                    trailing: PopupMenuButton<ThemeModeOption>(
+                      onSelected: (ThemeModeOption selected) {
+                        ref.read(themeModeProvider.notifier).setThemeMode(selected);
+                      },
+                      itemBuilder: (BuildContext context) => ThemeModeOption.values.map((option) => _buildMenuItem(option, theme, themeModeOption)).toList(),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      elevation: 4,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            themeModeOption.displayName,
+                            style: theme.textTheme.labelMedium?.copyWith(color: theme.iconTheme.color),
+                          ),
+                          const SizedBox(width: 8),
+                          Icon(Icons.chevron_right, color: theme.iconTheme.color),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 25),
-
-            // 4. Sección Información
-            const _SectionHeader(title: "INFORMACIÓN"),
-            const _SettingsGroup(
-              children: [
-                _SettingsTile(
-                  title: "Política de Privacidad",
-                  showArrow: true,
-                ),
-                _CustomDivider(),
-                _SettingsTile(
-                  title: "Acerca de la App",
-                  showArrow: true,
-                ),
-              ],
-            ),
-            const SizedBox(height: 30),
-
-
-
-            // 6. Footer Versión
-            Center(
-              child: Column(
-                children: [
-                  Text("Versión 1.0.2", style: theme.textTheme.labelSmall),
-                  const SizedBox(height: 4),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.cloud, size: 12, color: theme.iconTheme.color?.withValues(alpha: 0.6)),
-                      const SizedBox(width: 4),
-                      Text("Datos provistos por SIMA N.L.", style: theme.textTheme.labelSmall),
-                    ],
-                  )
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-          ],
+              const SizedBox(height: 25),
+
+              // 4. Sección Información
+              const _SectionHeader(title: "INFORMACIÓN"),
+              const _SettingsGroup(
+                children: [
+                  _SettingsTile(
+                    title: "Política de Privacidad",
+                    showArrow: true,
+                  ),
+                  _CustomDivider(),
+                  _SettingsTile(
+                    title: "Acerca de la App",
+                    showArrow: true,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 30),
+
+
+
+              // 6. Footer Versión
+              Center(
+                child: Column(
+                  children: [
+                    Text("Versión 1.0.2", style: theme.textTheme.labelSmall),
+                    const SizedBox(height: 4),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.cloud, size: 12, color: theme.iconTheme.color?.withValues(alpha: 0.6)),
+                        const SizedBox(width: 4),
+                        Text("Datos provistos por SIMA N.L.", style: theme.textTheme.labelSmall),
+                      ],
+                    )
+                  ],
+                ),
+              ),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+        loading: () => const Center(child: CircularProgressIndicator()),
+        error: (error, stack) => Center(child: Text('Error loading theme: $error')),
+      ),
+    );
+  }
+
+  PopupMenuItem<ThemeModeOption> _buildMenuItem(ThemeModeOption option, ThemeData theme, ThemeModeOption current) {
+    final bool isSelected = current == option;
+
+    // Simple styling: selected has a background
+    final selectedBg = isSelected ? theme.colorScheme.primary.withValues(alpha: 0.1) : Colors.transparent;
+    final selectedTextColor = isSelected ? theme.colorScheme.primary : theme.textTheme.bodyMedium?.color;
+
+    return PopupMenuItem<ThemeModeOption>(
+      value: option,
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        decoration: BoxDecoration(
+          color: selectedBg,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Text(
+          option.displayName,
+          style: TextStyle(color: selectedTextColor),
         ),
       ),
     );
