@@ -103,10 +103,10 @@ class SettingsScreen extends ConsumerWidget {
                         children: [
                           Text(
                             themeModeOption.displayName,
-                            style: theme.textTheme.labelMedium?.copyWith(color: theme.iconTheme.color),
+                            style: theme.textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
-                          Icon(Icons.chevron_right, color: theme.iconTheme.color),
+                          Icon(Icons.chevron_right, color: theme.dividerTheme.color),
                         ],
                       ),
                     ),
