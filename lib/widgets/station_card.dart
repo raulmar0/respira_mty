@@ -3,6 +3,7 @@ import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
 import 'pollutant_chip.dart';
 import '../screens/station_detail_screen.dart';
+import '../screens/pollutant_detail_screen.dart';
 
 class StationCard extends StatelessWidget {
   final Station station;
@@ -188,13 +189,28 @@ class StationCard extends StatelessWidget {
 
                     return Padding(
                       padding: EdgeInsets.only(right: isLast ? 0 : 8),
-                      child: PollutantChip(
-                        label: displayLabel,
-                        value: displayValue,
-                        unit: unit,
-                        valueColor: color,
-                        width: (computedWidth - 1.0).clamp(40.0, 72.0),
-                        compact: compact,
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(12),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (c) => PollutantDetailScreen(
+                                parameter: parameter,
+                                value: value,
+                                unit: unit,
+                                color: color,
+                              ),
+                            ),
+                          );
+                        },
+                        child: PollutantChip(
+                          label: displayLabel,
+                          value: displayValue,
+                          unit: unit,
+                          valueColor: color,
+                          width: (computedWidth - 1.0).clamp(40.0, 72.0),
+                          compact: compact,
+                        ),
                       ),
                     );
                   });

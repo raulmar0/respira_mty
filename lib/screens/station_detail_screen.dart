@@ -5,6 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
 import '../utils/app_colors.dart';
+import 'pollutant_detail_screen.dart';
 
 class StationDetailScreenLight extends StatefulWidget {
   final Station station;
@@ -347,12 +348,27 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
 
                         return Column(
                           children: [
-                            PollutantCardLight(
-                              name: displayName,
-                              symbol: param,
-                              value: valueStr,
-                              unit: unit,
-                              indicatorColor: color,
+                            InkWell(
+                              borderRadius: BorderRadius.circular(16),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (c) => PollutantDetailScreen(
+                                      parameter: param,
+                                      value: val as double?,
+                                      unit: unit,
+                                      color: color,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: PollutantCardLight(
+                                name: displayName,
+                                symbol: param,
+                                value: valueStr,
+                                unit: unit,
+                                indicatorColor: color,
+                              ),
                             ),
                             const SizedBox(height: 12),
                           ],
@@ -360,40 +376,8 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                       }).toList(),
                     )
                   else
-                    // Contenido simple de Clima (placeholder si no hay datos reales)
-                    Column(
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: cardColor,
-                            borderRadius: BorderRadius.circular(16),
-                            boxShadow: [
-                              BoxShadow(
-                                color: theme.shadowColor.withValues(alpha: 0.06),
-                                blurRadius: 10,
-                                offset: const Offset(0, 4),
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'No hay datos de clima disponibles',
-                                style: TextStyle(fontWeight: FontWeight.w700, color: primaryTextColor),
-                              ),
-                              const SizedBox(height: 6),
-                              Text(
-                                'Intenta volver más tarde o verifica los permisos de ubicación.',
-                                style: TextStyle(color: secondaryTextColor),
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                      ],
-                    ),
+                    // Sección de Clima embebida
+                    const _WeatherSection(),
 
                   // Espacio extra al final
                   const SizedBox(height: 40),
@@ -541,6 +525,216 @@ class PollutantCardLight extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+// --- SECCIÓN: Clima (embebida en Station Detail) ---
+class _WeatherSection extends StatelessWidget {
+  const _WeatherSection();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final primaryTextColor = theme.textTheme.bodyLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 1. Tarjeta Principal
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [Color(0xFF4A90E2), Color(0xFF357ABD)],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            boxShadow: [
+              BoxShadow(color: Colors.blue.withValues(alpha: 0.12), blurRadius: 12, offset: const Offset(0, 6)),
+            ],
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Temperatura Actual', style: TextStyle(color: Colors.white.withValues(alpha: 0.9))),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: const [
+                  Text('28°', style: TextStyle(fontSize: 44, fontWeight: FontWeight.bold, color: Colors.white)),
+                  Icon(Icons.wb_cloudy, size: 52, color: Colors.white),
+                ],
+              ),
+              const SizedBox(height: 6),
+              const Text('Partly Cloudy', style: TextStyle(color: Colors.white70, fontSize: 14)),
+              const SizedBox(height: 12),
+              Divider(color: Colors.white.withValues(alpha: 0.25)),
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  _WeatherMainDetail(label: 'Humedad', value: '45%'),
+                  _WeatherMainDetail(label: 'Viento', value: '12 km/h'),
+                  _WeatherMainDetail(label: 'Presión', value: '1012 mb'),
+                ],
+              )
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 18),
+
+        // 2. Tarjetas pequeñas (Viento / Precipitación)
+        Row(
+          children: [
+            Expanded(
+              child: _WeatherSmallCard(
+                title: 'VIENTO',
+                value: 'NE',
+                subValue: 'Dirección',
+                icon: Icons.air,
+                isWind: true,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _WeatherSmallCard(
+                title: 'PRECIPITACIÓN',
+                value: '0%',
+                subValue: 'Probabilidad',
+                icon: Icons.water_drop,
+                isWind: false,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 20),
+
+        // 3. Pronóstico por hora
+        Text('Pronóstico', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor)),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(14),
+          decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: const [
+              _WeatherHourlyItem(time: 'AHORA', icon: Icons.wb_cloudy, temp: '28°'),
+              _WeatherHourlyItem(time: '14:00', icon: Icons.wb_sunny, temp: '30°'),
+              _WeatherHourlyItem(time: '16:00', icon: Icons.wb_sunny, temp: '29°'),
+              _WeatherHourlyItem(time: '18:00', icon: Icons.cloud, temp: '26°'),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 16),
+
+        // 4. Pronóstico diario
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
+          child: Column(
+            children: const [
+              _WeatherDailyItem(day: 'Mar', icon: Icons.wb_sunny, label: 'Soleado', max: '32°', min: '18°', iconColor: Colors.orange),
+              Divider(),
+              _WeatherDailyItem(day: 'Mié', icon: Icons.cloud, label: 'Nublado', max: '29°', min: '19°', iconColor: Colors.grey),
+              Divider(),
+              _WeatherDailyItem(day: 'Jue', icon: Icons.beach_access, label: 'Lluvia', max: '24°', min: '17°', iconColor: Colors.blue),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 12),
+      ],
+    );
+  }
+}
+
+// Sub-widgets para la sección de clima
+class _WeatherMainDetail extends StatelessWidget {
+  final String label;
+  final String value;
+  const _WeatherMainDetail({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
+        const SizedBox(height: 4),
+        Text(value, style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+      ],
+    );
+  }
+}
+
+class _WeatherSmallCard extends StatelessWidget {
+  final String title;
+  final String value;
+  final String subValue;
+  final IconData icon;
+  final bool isWind;
+
+  const _WeatherSmallCard({required this.title, required this.value, required this.subValue, required this.icon, required this.isWind});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(color: cardColor, borderRadius: BorderRadius.circular(12)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(children: [Icon(icon, size: 16, color: Colors.grey), const SizedBox(width: 8), Text(title, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold))]),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(crossAxisAlignment: CrossAxisAlignment.start, children: [Text(value, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold)), Text(subValue, style: const TextStyle(fontSize: 12, color: Colors.grey))]),
+              if (isWind)
+                Container(padding: const EdgeInsets.all(8), decoration: BoxDecoration(color: Colors.green[50], shape: BoxShape.circle), child: const Icon(Icons.navigation, color: Colors.green, size: 18)),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class _WeatherHourlyItem extends StatelessWidget {
+  final String time;
+  final IconData icon;
+  final String temp;
+  const _WeatherHourlyItem({required this.time, required this.icon, required this.temp});
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(children: [Text(time, style: const TextStyle(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.bold)), const SizedBox(height: 8), Icon(icon, size: 26, color: const Color(0xFF102A43)), const SizedBox(height: 8), Text(temp, style: const TextStyle(fontWeight: FontWeight.bold))]);
+  }
+}
+
+class _WeatherDailyItem extends StatelessWidget {
+  final String day;
+  final IconData icon;
+  final String label;
+  final String max;
+  final String min;
+  final Color iconColor;
+  const _WeatherDailyItem({required this.day, required this.icon, required this.label, required this.max, required this.min, required this.iconColor});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(children: [SizedBox(width: 40, child: Text(day, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.grey))), Icon(icon, color: iconColor), const SizedBox(width: 12), Expanded(child: Text(label, style: const TextStyle(fontWeight: FontWeight.w600))), Text(max, style: const TextStyle(fontWeight: FontWeight.bold)), const SizedBox(width: 12), Text(min, style: const TextStyle(color: Colors.grey))]),
     );
   }
 }
