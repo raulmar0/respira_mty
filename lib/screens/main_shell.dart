@@ -30,14 +30,30 @@ class _MainShellState extends ConsumerState<MainShell> {
           _buildTabNavigator(_navigatorKeys[3], const SettingsScreen()),
         ],
       ),
-      bottomNavigationBar: BottomNavigationBar(
-        currentIndex: selectedIndex,
-        type: BottomNavigationBarType.fixed,
-        selectedItemColor: const Color(0xFF5CE57E),
-        unselectedItemColor: Colors.grey,
-        showUnselectedLabels: true,
-        onTap: (index) {
-          final currentIndex = ref.read(selectedTabProvider);
+      bottomNavigationBar: Builder(builder: (context) {
+        final theme = Theme.of(context);
+        final isDark = theme.brightness == Brightness.dark;
+        final selectedColor = isDark ? Colors.white : Colors.black87;
+        final baseIconColor = theme.colorScheme.onSurface;
+        final unselectedColor = baseIconColor.withValues(alpha: 0.6);
+        final backgroundColor = isDark ? const Color.fromARGB(255, 22, 23, 24) : theme.colorScheme.surface;
+
+        final itemData = [
+          {'icon': Icons.map_outlined, 'label': 'Map'},
+          {'icon': Icons.list, 'label': 'List'},
+          {'icon': Icons.notifications_outlined, 'label': 'Notifications'},
+          {'icon': Icons.settings_outlined, 'label': 'Settings'},
+        ];
+
+        return BottomNavigationBar(
+          currentIndex: selectedIndex,
+          type: BottomNavigationBarType.fixed,
+          backgroundColor: backgroundColor,
+          selectedItemColor: selectedColor,
+          unselectedItemColor: unselectedColor,
+          showUnselectedLabels: true,
+          onTap: (index) {
+            final currentIndex = ref.read(selectedTabProvider);
 
           // If tapping the current tab, pop its navigator to root
           if (index == currentIndex) {
@@ -53,13 +69,12 @@ class _MainShellState extends ConsumerState<MainShell> {
             _navigatorKeys[1].currentState?.popUntil((route) => route.isFirst);
           }
         },
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.map_outlined), label: 'Map'),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'List'),
-          BottomNavigationBarItem(icon: Icon(Icons.notifications_outlined), label: 'Notifications'),
-          BottomNavigationBarItem(icon: Icon(Icons.settings_outlined), label: 'Settings'),
-        ],
-      ),
+        items: itemData.map((data) => BottomNavigationBarItem(
+          icon: Padding(padding: EdgeInsets.only(top: 6), child: Icon(data['icon'] as IconData)),
+          label: data['label'] as String,
+        )).toList(),
+      );
+    }),
     );
   }
 
