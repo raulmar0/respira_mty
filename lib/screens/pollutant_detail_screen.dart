@@ -44,32 +44,6 @@ class PollutantDetailScreen extends StatelessWidget {
     }
   }
 
-  // Valores máximos aproximados para normalizar el gauge (no científico, solo visual)
-  double _maxForParameter(String param) {
-    switch (param.toUpperCase()) {
-      case 'PM2.5':
-      case 'PM25':
-      case 'PM25M':
-        return 150.0;
-      case 'PM10':
-      case 'PM10M':
-        return 250.0;
-      case 'O3':
-      case 'O3M':
-        return 200.0;
-      case 'NO2':
-      case 'NO2M':
-        return 250.0;
-      case 'SO2':
-      case 'SO2M':
-        return 350.0;
-      case 'CO':
-      case 'COM':
-        return 20.0;
-      default:
-        return 100.0;
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,7 +59,6 @@ class PollutantDetailScreen extends StatelessWidget {
     // Theme-aware colors for light/dark
     final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardTheme.color ?? (isDark ? const Color(0xFF0F1724) : Colors.white);
-    final titleColor = theme.textTheme.titleLarge?.color ?? (isDark ? Colors.white : const Color(0xFF102A43));
     final primaryTextColor = theme.textTheme.headlineMedium?.color ?? (isDark ? Colors.white : const Color(0xFF1A202C));
     final secondaryTextColor = theme.textTheme.bodySmall?.color ?? (isDark ? Colors.grey[400] : Colors.grey[600]);
     final badgeBg = isDark ? Colors.grey[900] : Colors.grey[100];
@@ -500,32 +473,6 @@ class PollutantDetailScreen extends StatelessWidget {
     }
   }
 
-  Widget _buildNamedIconRow(BuildContext context, dynamic namedIcon) {
-    final icon = (namedIcon.icon is IconData) ? namedIcon.icon as IconData : Icons.help_outline;
-    final text = (namedIcon.text as String?) ?? '';
-    final theme = Theme.of(context);
-    final isDarkRow = theme.brightness == Brightness.dark;
-    final bg = isDarkRow ? Colors.blueGrey[800] : Colors.blueGrey[50];
-    final iconColor = isDarkRow ? Colors.blueGrey[200] : Colors.blueGrey;
-    final textColor = theme.textTheme.bodySmall?.color ?? (isDarkRow ? Colors.grey[300] : Colors.black87);
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: bg,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, size: 18, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(child: Text(text, style: TextStyle(color: textColor))),
-        ],
-      ),
-    );
-  }
 
   Widget _buildRiskCard(BuildContext context, dynamic namedIcon) {
     final icon = (namedIcon.icon is IconData) ? namedIcon.icon as IconData : Icons.help_outline;

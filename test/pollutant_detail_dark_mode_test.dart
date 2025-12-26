@@ -23,7 +23,7 @@ void main() {
     final cardFinder = find.byWidgetPredicate((w) {
       if (w is Container && w.decoration is BoxDecoration) {
         final d = w.decoration as BoxDecoration;
-        if (d.color?.value == expectedCardColor.value) {
+        if (d.color == expectedCardColor) {
           if (d.borderRadius is BorderRadius) {
             final br = d.borderRadius as BorderRadius;
             return br.topLeft.x == 32.0;
