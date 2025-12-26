@@ -3,8 +3,12 @@ import '../utils/air_quality_scale.dart';
 import '../data/pollutants.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
 import 'package:respira_mty/l10n/app_localizations_ext.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 
-class PollutantDetailScreen extends StatelessWidget {
+class PollutantDetailScreen extends StatefulWidget {
   final String parameter;
   final double? value;
   final String unit;
@@ -17,6 +21,13 @@ class PollutantDetailScreen extends StatelessWidget {
     this.unit = '',
     this.color,
   });
+
+  @override
+  State<PollutantDetailScreen> createState() => _PollutantDetailScreenState();
+}
+
+class _PollutantDetailScreenState extends State<PollutantDetailScreen> {
+  final ScreenshotController _screenshotController = ScreenshotController();
 
   // Mapa simple de descripciones por contaminante (en español)
   String _getDescription(BuildContext context, String param) {
@@ -47,49 +58,46 @@ class PollutantDetailScreen extends StatelessWidget {
     }
   }
 
+  Future<void> _shareScreen() async {
+    // Capture the full content using the controller attached to the widget in the tree
+    final capturedImage = await _screenshotController.capture();
 
-  @override
-  Widget build(BuildContext context) {
-    final displayLabel = _getDisplayLabel(parameter);
-    final displayValue = value != null
-        ? (parameter.toUpperCase().contains('CO') ? value!.toStringAsFixed(1) : value!.toStringAsFixed(0))
+    if (capturedImage == null) return;
+
+    // Save to temp file
+    final directory = await getTemporaryDirectory();
+    final imagePath = await File('${directory.path}/pollutant_share.png').create();
+    await imagePath.writeAsBytes(capturedImage);
+
+    // Share
+    if (mounted) {
+      await Share.shareXFiles(
+        [XFile(imagePath.path)],
+        text: 'Detalle de ${widget.parameter}',
+      );
+    }
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final displayLabel = _getDisplayLabel(widget.parameter);
+    final displayValue = widget.value != null
+        ? (widget.parameter.toUpperCase().contains('CO') ? widget.value!.toStringAsFixed(1) : widget.value!.toStringAsFixed(0))
         : 'N/D';
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final indicatorColor = color ?? AirQualityScale.getColorForParameter(parameter, value ?? 0);
+    final indicatorColor = widget.color ?? AirQualityScale.getColorForParameter(widget.parameter, widget.value ?? 0);
 
     // Theme-aware colors for light/dark
-    final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardTheme.color ?? (isDark ? const Color(0xFF0F1724) : Colors.white);
     final primaryTextColor = theme.textTheme.headlineMedium?.color ?? (isDark ? Colors.white : const Color(0xFF1A202C));
     final secondaryTextColor = theme.textTheme.bodySmall?.color ?? (isDark ? Colors.grey[400] : Colors.grey[600]);
     final badgeBg = isDark ? Colors.grey[900] : Colors.grey[100];
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: cardColor,
-          ),
-          child: IconButton(
-            icon: Icon(Icons.arrow_back, color: primaryTextColor),
-            onPressed: () => Navigator.pop(context),
-          ),
-        ),
-        title: Text(
-          AppLocalizations.of(context)!.pollutantDetailTitle,
-          style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
+    return Screenshot(
+      controller: _screenshotController,
+      child: Container(
+        color: theme.scaffoldBackgroundColor, // Ensure background is captured
         child: Column(
           children: [
             // Main card: value, unit, abbreviation, description and quality badge
@@ -126,7 +134,7 @@ class PollutantDetailScreen extends StatelessWidget {
                       const SizedBox(height: 5),
                       // Unit
                       Text(
-                        unit.isNotEmpty ? unit : AirQualityScale.getUnitForParameter(parameter),
+                        widget.unit.isNotEmpty ? widget.unit : AirQualityScale.getUnitForParameter(widget.parameter),
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
@@ -144,7 +152,7 @@ class PollutantDetailScreen extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Text(
-                          _getDescription(context, parameter),
+                          _getDescription(context, widget.parameter),
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14, color: secondaryTextColor, height: 1.5),
                         ),
@@ -170,7 +178,7 @@ class PollutantDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              _getQualityLabel(parameter, value, context),
+                              _getQualityLabel(widget.parameter, widget.value, context),
                               style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                           ],
@@ -179,18 +187,18 @@ class PollutantDetailScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-
+    
                 const SizedBox(height: 20),
                 // Keep displayLabel & description duplicate removed since included in card
               ],
             ),
-
+    
             const SizedBox(height: 30),
-
+    
             // Contenido dinámico: método de medición, riesgos y fuentes según el contaminante
             const SizedBox(height: 10),
             Builder(builder: (context) {
-              final key = _normalizeParameter(parameter);
+              final key = _normalizeParameter(widget.parameter);
               final info = pollutantMap[key];
               if (info == null) {
                 // Fallback: mostrar la información genérica si no existe dato específico
@@ -222,12 +230,12 @@ class PollutantDetailScreen extends StatelessWidget {
                   ],
                 );
               }
-
+    
               return Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-
-
+    
+    
                   // Riesgos
                   _buildSectionHeader(Icons.medical_services_outlined, AppLocalizations.of(context)!.risksTitle, Colors.green),
                   const SizedBox(height: 10),
@@ -255,7 +263,7 @@ class PollutantDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
                   ],
-
+    
                   const SizedBox(height: 8),
                   // Fuentes
                   _buildSectionHeader(Icons.factory_outlined, AppLocalizations.of(context)!.sourcesTitle, Colors.green),
@@ -289,7 +297,7 @@ class PollutantDetailScreen extends StatelessWidget {
                       );
                     }).toList(),
                   ),
-
+    
                   // Método de medición (moved to the end; simplified)
                   const SizedBox(height: 12),
                   _buildSectionHeader(Icons.science, AppLocalizations.of(context)!.measurementMethod, Colors.green),
@@ -316,13 +324,63 @@ class PollutantDetailScreen extends StatelessWidget {
                       ],
                     ),
                   ),
-
+    
                   const SizedBox(height: 40),
                 ],
               );
             }),
           ],
         ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardTheme.color ?? (isDark ? const Color(0xFF0F1724) : Colors.white);
+    final primaryTextColor = theme.textTheme.headlineMedium?.color ?? (isDark ? Colors.white : const Color(0xFF1A202C));
+
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: Container(
+          margin: const EdgeInsets.all(8),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: cardColor,
+          ),
+          child: IconButton(
+            icon: Icon(Icons.arrow_back, color: primaryTextColor),
+            onPressed: () => Navigator.pop(context),
+          ),
+        ),
+        title: Text(
+          AppLocalizations.of(context)!.pollutantDetailTitle,
+          style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
+        ),
+        centerTitle: true,
+        actions: [
+          Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: cardColor,
+            ),
+            child: IconButton(
+              icon: Icon(Icons.share_outlined, color: primaryTextColor),
+              onPressed: _shareScreen,
+            ),
+          ),
+        ],
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: _buildContent(context),
       ),
     );
   }

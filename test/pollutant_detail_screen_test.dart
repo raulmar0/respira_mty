@@ -29,4 +29,17 @@ void main() {
     // Badge text
     expect(find.textContaining('Calidad'), findsOneWidget);
   });
+
+  testWidgets('share button is present in PollutantDetailScreen', (WidgetTester tester) async {
+    await tester.pumpWidget(MaterialApp(
+      locale: const Locale('es'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
+      home: PollutantDetailScreen(parameter: 'PM10', value: 60, unit: 'µg/m³'),
+    ));
+
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+  });
 }

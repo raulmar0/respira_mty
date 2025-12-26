@@ -6,6 +6,10 @@ import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
 import '../utils/app_colors.dart';
 import 'pollutant_detail_screen.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:screenshot/screenshot.dart';
+import 'package:share_plus/share_plus.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
 
 class StationDetailScreenLight extends StatefulWidget {
@@ -20,6 +24,7 @@ class StationDetailScreenLight extends StatefulWidget {
 class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
   bool showPollutants = true;
   final MapController _mapController = MapController();
+  final ScreenshotController _screenshotController = ScreenshotController();
   late LatLng _center;
   double _zoom = 13.0;
 
@@ -33,9 +38,28 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
     _zoom = 13.0;
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final station = widget.station; // shorthand
+  Future<void> _shareScreen() async {
+    // Capture the full content using the controller attached to the widget in the tree
+    final capturedImage = await _screenshotController.capture();
+
+    if (capturedImage == null) return;
+
+    // Save to temp file
+    final directory = await getTemporaryDirectory();
+    final imagePath = await File('${directory.path}/station_share.png').create();
+    await imagePath.writeAsBytes(capturedImage);
+
+    // Share
+    if (mounted) {
+      await Share.shareXFiles(
+        [XFile(imagePath.path)],
+        text: 'Mira la calidad del aire en ${widget.station.name}',
+      );
+    }
+  }
+
+  Widget _buildContent(BuildContext context) {
+    final station = widget.station;
     final municipality = station.name.split(',').first.trim();
     final dominant = station.dominantPollutant;
     final statusTextColor = dominant.statusTextColor;
@@ -44,12 +68,356 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
 
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-
+    
     // Dynamic colors from theme
-    final backgroundColor = theme.scaffoldBackgroundColor;
     final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
     final primaryTextColor = theme.textTheme.headlineSmall?.color ?? (isDark ? Colors.white : Colors.black87);
     final secondaryTextColor = theme.textTheme.bodySmall?.color ?? (isDark ? Colors.grey[400] : Colors.grey[600]);
+    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF111827));
+
+    return Screenshot(
+      controller: _screenshotController,
+      child: Container(
+        color: theme.scaffoldBackgroundColor, // Ensure background is captured
+        child: Column(
+          children: [
+            // --- CABECERA ---
+            Text(
+              municipality,
+              style: TextStyle(
+                fontSize: 32,
+                fontWeight: FontWeight.w800, // Extra bold
+                color: primaryTextColor,
+              ),
+            ),
+            const SizedBox(height: 12),
+    
+            // Pill de Estado (color dinámico según status)
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+              decoration: BoxDecoration(
+                color: statusBg,
+                borderRadius: BorderRadius.circular(50),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 10,
+                    height: 10,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: statusCircle,
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    station.status,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w700,
+                      color: statusTextColor,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    
+            const SizedBox(height: 24),
+    
+            // --- SECCIÓN LOCATION ---
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "Location",
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: primaryTextColor,
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+    
+            // Mapa (centrado en coordenadas de la estación) con controles de zoom
+            Container(
+              height: 220,
+              width: double.infinity,
+              clipBehavior: Clip.antiAlias,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
+              ),
+              child: Stack(
+                children: [
+                  AbsorbPointer(
+                    absorbing: true,
+                    child: FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: LatLng(
+                          station.latitude,
+                          station.longitude,
+                        ),
+                        initialZoom: _zoom,
+                        onPositionChanged: (position, _) {
+                          // Only update state if mounted and not during build (though this callback is usually safe)
+                          // However, for the screenshot, we want the static map.
+                          // When sharing, this map is rebuilt.
+                          if (mounted) {
+                             setState(() {
+                              _center = position.center;
+                              _zoom = position.zoom;
+                            });
+                          }
+                        },
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'com.example.respira_mty',
+                        ),
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: LatLng(
+                                station.latitude,
+                                station.longitude,
+                              ),
+                              width: 48,
+                              height: 48,
+                              child: Icon(
+                                Icons.location_on,
+                                color: AppColors.aqiGreen,
+                                size: 36,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+    
+                  // Controles de Zoom
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Column(
+                      children: [
+                        GestureDetector(
+                          onTap: () {
+                            final newZoom = (_zoom + 1.0).clamp(
+                              1.0,
+                              20.0,
+                            );
+                            _mapController.move(_center, newZoom);
+                            setState(() => _zoom = newZoom);
+                          },
+                          child: _ZoomButton(
+                            key: const Key('zoom_in'),
+                            icon: Icons.add,
+                            backgroundColor: cardColor,
+                            iconColor: iconColor,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () {
+                            final newZoom = (_zoom - 1.0).clamp(
+                              1.0,
+                              20.0,
+                            );
+                            _mapController.move(_center, newZoom);
+                            setState(() => _zoom = newZoom);
+                          },
+                          child: _ZoomButton(
+                            key: const Key('zoom_out'),
+                            icon: Icons.remove,
+                            backgroundColor: cardColor,
+                            iconColor: iconColor,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+    
+            const SizedBox(height: 32),
+    
+            // --- TOGGLE SWITCH (Contaminantes / Clima) ---
+            // Usamos colores de 'mantenimiento' para mejor contraste y adaptabilidad a modo oscuro
+            Builder(builder: (ctx) {
+              final maintenanceBgLight = AppColors.statusFueraServicioBackground;
+              final maintenanceTextLight = AppColors.statusFueraServicioText;
+              final maintenanceBgDark = AppColors.statusFueraServicioCircle.withValues(alpha: 0.12);
+              final switchBg = isDark ? maintenanceBgDark : maintenanceBgLight;
+    
+              return Container(
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: switchBg,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => showPollutants = true),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: showPollutants
+                                ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: showPollutants
+                                ? [
+                                    BoxShadow(
+                                      color: theme.shadowColor.withValues(alpha: 0.06),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.tabPollutants,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => showPollutants = false),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          decoration: BoxDecoration(
+                            color: !showPollutants
+                                ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(12),
+                            boxShadow: !showPollutants
+                                ? [
+                                    BoxShadow(
+                                      color: theme.shadowColor.withValues(alpha: 0.06),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Text(
+                            AppLocalizations.of(context)!.tabWeather,
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              color: !showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            }),
+    
+            const SizedBox(height: 24),
+    
+            // --- CONTENIDO: Contaminantes o Clima ---
+            if (showPollutants)
+              Column(
+                children: station.pollutantsFromUI.map((p) {
+                  final param = p['parameter'] as String? ?? '';
+                  final val = p['value'];
+                  final valueStr = val == null
+                      ? 'N/D'
+                      : (param.toUpperCase().contains('CO')
+                            ? (val as double).toStringAsFixed(1)
+                            : (val as double).toStringAsFixed(0));
+                  final unit = p['unit'] as String? ?? '';
+    
+                  // Mapeo de nombre completo usando localizaciones
+                  final fullNames = {
+                    'PM25': AppLocalizations.of(context)!.pm2_5,
+                    'PM2.5': AppLocalizations.of(context)!.pm2_5,
+                    'PM10': AppLocalizations.of(context)!.pm10,
+                    'O3': AppLocalizations.of(context)!.o3,
+                    'NO2': AppLocalizations.of(context)!.no2,
+                    'SO2': AppLocalizations.of(context)!.so2,
+                    'CO': AppLocalizations.of(context)!.co,
+                  };
+    
+                  final displayName =
+                      fullNames[param.toUpperCase()] ??
+                      (p['label'] as String? ?? param);
+    
+                  final color = (val != null)
+                      ? AirQualityScale.getColorForParameter(
+                          param,
+                          val as double,
+                        )
+                      : Colors.grey;
+    
+                  return Column(
+                    children: [
+                      InkWell(
+                        borderRadius: BorderRadius.circular(16),
+                        onTap: () {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (c) => PollutantDetailScreen(
+                                parameter: param,
+                                value: val as double?,
+                                unit: unit,
+                                color: color,
+                              ),
+                            ),
+                          );
+                        },
+                        child: PollutantCardLight(
+                          name: displayName,
+                          symbol: param,
+                          value: valueStr,
+                          unit: unit,
+                          indicatorColor: color,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  );
+                }).toList(),
+              )
+            else
+              // Sección de Clima embebida
+              const _WeatherSection(),
+    
+            // Espacio extra al final
+            const SizedBox(height: 40),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final backgroundColor = theme.scaffoldBackgroundColor;
+    final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
     final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : const Color(0xFF111827));
 
     return Scaffold(
@@ -60,330 +428,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
-              child: Column(
-                children: [
-                  // --- CABECERA ---
-                  Text(
-                    municipality,
-                    style: TextStyle(
-                      fontSize: 32,
-                      fontWeight: FontWeight.w800, // Extra bold
-                      color: primaryTextColor,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Pill de Estado (color dinámico según status)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: statusBg,
-                      borderRadius: BorderRadius.circular(50),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          width: 10,
-                          height: 10,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: statusCircle,
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          station.status,
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w700,
-                            color: statusTextColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // --- SECCIÓN LOCATION ---
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: Text(
-                      "Location",
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: primaryTextColor,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-
-                  // Mapa (centrado en coordenadas de la estación) con controles de zoom
-                  Container(
-                    height: 220,
-                    width: double.infinity,
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.black.withValues(alpha: 0.03)),
-                    ),
-                    child: Stack(
-                      children: [
-                AbsorbPointer(
-                  absorbing: true,
-                  child: FlutterMap(
-                    mapController: _mapController,
-                    options: MapOptions(
-                      initialCenter: LatLng(
-                        station.latitude,
-                        station.longitude,
-                      ),
-                      initialZoom: _zoom,
-                      onPositionChanged: (position, _) {
-                        setState(() {
-                          _center = position.center;
-                          _zoom = position.zoom;
-                        });
-                      },
-                    ),
-                    children: [
-                      TileLayer(
-                        urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                        userAgentPackageName: 'com.example.respira_mty',
-                      ),
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: LatLng(
-                              station.latitude,
-                              station.longitude,
-                            ),
-                            width: 48,
-                            height: 48,
-                            child: Icon(
-                              Icons.location_on,
-                              color: AppColors.aqiGreen,
-                              size: 36,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                        // Controles de Zoom
-                        Positioned(
-                          bottom: 12,
-                          right: 12,
-                          child: Column(
-                            children: [
-                              GestureDetector(
-                                onTap: () {
-                                  final newZoom = (_zoom + 1.0).clamp(
-                                    1.0,
-                                    20.0,
-                                  );
-                                  _mapController.move(_center, newZoom);
-                                  setState(() => _zoom = newZoom);
-                                },
-                                child: _ZoomButton(
-                                  key: const Key('zoom_in'),
-                                  icon: Icons.add,
-                                  backgroundColor: cardColor,
-                                  iconColor: iconColor,
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              GestureDetector(
-                                onTap: () {
-                                  final newZoom = (_zoom - 1.0).clamp(
-                                    1.0,
-                                    20.0,
-                                  );
-                                  _mapController.move(_center, newZoom);
-                                  setState(() => _zoom = newZoom);
-                                },
-                                child: _ZoomButton(
-                                  key: const Key('zoom_out'),
-                                  icon: Icons.remove,
-                                  backgroundColor: cardColor,
-                                  iconColor: iconColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-
-                  const SizedBox(height: 32),
-
-                  // --- TOGGLE SWITCH (Contaminantes / Clima) ---
-                  // Usamos colores de 'mantenimiento' para mejor contraste y adaptabilidad a modo oscuro
-                  Builder(builder: (ctx) {
-                    final maintenanceBgLight = AppColors.statusFueraServicioBackground;
-                    final maintenanceTextLight = AppColors.statusFueraServicioText;
-                    final maintenanceBgDark = AppColors.statusFueraServicioCircle.withValues(alpha: 0.12);
-                    final switchBg = isDark ? maintenanceBgDark : maintenanceBgLight;
-
-                    return Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: switchBg,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => showPollutants = true),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: showPollutants
-                                      ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: showPollutants
-                                      ? [
-                                          BoxShadow(
-                                            color: theme.shadowColor.withValues(alpha: 0.06),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(context)!.tabPollutants,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                          Expanded(
-                            child: GestureDetector(
-                              onTap: () => setState(() => showPollutants = false),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                decoration: BoxDecoration(
-                                  color: !showPollutants
-                                      ? (isDark ? AppColors.statusFueraServicioCircle : Colors.white)
-                                      : Colors.transparent,
-                                  borderRadius: BorderRadius.circular(12),
-                                  boxShadow: !showPollutants
-                                      ? [
-                                          BoxShadow(
-                                            color: theme.shadowColor.withValues(alpha: 0.06),
-                                            blurRadius: 4,
-                                            offset: const Offset(0, 2),
-                                          ),
-                                        ]
-                                      : null,
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(context)!.tabWeather,
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    color: !showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
-                                    fontWeight: FontWeight.w600,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    );
-                  }),
-
-                  const SizedBox(height: 24),
-
-                  // --- CONTENIDO: Contaminantes o Clima ---
-                  if (showPollutants)
-                    Column(
-                      children: station.pollutantsFromUI.map((p) {
-                        final param = p['parameter'] as String? ?? '';
-                        final val = p['value'];
-                        final valueStr = val == null
-                            ? 'N/D'
-                            : (param.toUpperCase().contains('CO')
-                                  ? (val as double).toStringAsFixed(1)
-                                  : (val as double).toStringAsFixed(0));
-                        final unit = p['unit'] as String? ?? '';
-
-                        // Mapeo de nombre completo usando localizaciones
-                        final fullNames = {
-                          'PM25': AppLocalizations.of(context)!.pm2_5,
-                          'PM2.5': AppLocalizations.of(context)!.pm2_5,
-                          'PM10': AppLocalizations.of(context)!.pm10,
-                          'O3': AppLocalizations.of(context)!.o3,
-                          'NO2': AppLocalizations.of(context)!.no2,
-                          'SO2': AppLocalizations.of(context)!.so2,
-                          'CO': AppLocalizations.of(context)!.co,
-                        };
-
-                        final displayName =
-                            fullNames[param.toUpperCase()] ??
-                            (p['label'] as String? ?? param);
-
-                        final color = (val != null)
-                            ? AirQualityScale.getColorForParameter(
-                                param,
-                                val as double,
-                              )
-                            : Colors.grey;
-
-                        return Column(
-                          children: [
-                            InkWell(
-                              borderRadius: BorderRadius.circular(16),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(
-                                    builder: (c) => PollutantDetailScreen(
-                                      parameter: param,
-                                      value: val as double?,
-                                      unit: unit,
-                                      color: color,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: PollutantCardLight(
-                                name: displayName,
-                                symbol: param,
-                                value: valueStr,
-                                unit: unit,
-                                indicatorColor: color,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                          ],
-                        );
-                      }).toList(),
-                    )
-                  else
-                    // Sección de Clima embebida
-                    const _WeatherSection(),
-
-                  // Espacio extra al final
-                  const SizedBox(height: 40),
-                ],
-              ),
+              child: _buildContent(context),
             ),
           ),
 
@@ -409,7 +454,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                   size: 20,
                   color: iconColor,
                 ),
-                onPressed: () {},
+                onPressed: _shareScreen,
                 padding: EdgeInsets.zero,
               ),
             ),

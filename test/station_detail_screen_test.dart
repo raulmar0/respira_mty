@@ -112,4 +112,20 @@ Widget makeTestable(Station station) => MaterialApp(
 
     expect(indicatorFinder, findsOneWidget);
   });
+
+  testWidgets('share button is present', (tester) async {
+    final station = Station(
+      id: '4',
+      apiCode: 'A4',
+      name: 'Municipio 4, Zona',
+      latitude: 30.0,
+      longitude: 30.0,
+      parametrosUI: [],
+    );
+
+    await tester.pumpWidget(makeTestable(station));
+    await tester.pumpAndSettle();
+
+    expect(find.byIcon(Icons.share_outlined), findsOneWidget);
+  });
 }
