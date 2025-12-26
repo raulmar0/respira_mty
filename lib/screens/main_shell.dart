@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 import '../providers/navigation_provider.dart';
 import 'stations_map_screen.dart';
 import 'stations_list_screen.dart';
@@ -39,10 +40,10 @@ class _MainShellState extends ConsumerState<MainShell> {
         final backgroundColor = isDark ? const Color.fromARGB(255, 22, 23, 24) : theme.colorScheme.surface;
 
         final itemData = [
-          {'icon': Icons.map_outlined, 'label': 'Map'},
-          {'icon': Icons.list, 'label': 'List'},
-          {'icon': Icons.notifications_outlined, 'label': 'Notifications'},
-          {'icon': Icons.settings_outlined, 'label': 'Settings'},
+          {'icon': Icons.map_outlined, 'label': AppLocalizations.of(context)!.stationsMapTitle},
+          {'icon': Icons.list, 'label': AppLocalizations.of(context)!.stationsTitle},
+          {'icon': Icons.notifications_outlined, 'label': AppLocalizations.of(context)!.notificationsTitle},
+          {'icon': Icons.settings_outlined, 'label': AppLocalizations.of(context)!.settingsTitle},
         ];
 
         return BottomNavigationBar(

@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../utils/air_quality_scale.dart';
 import '../data/pollutants.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
+import 'package:respira_mty/l10n/app_localizations_ext.dart';
 
 class PollutantDetailScreen extends StatelessWidget {
   final String parameter;
@@ -17,30 +19,31 @@ class PollutantDetailScreen extends StatelessWidget {
   });
 
   // Mapa simple de descripciones por contaminante (en español)
-  String _getDescription(String param) {
+  String _getDescription(BuildContext context, String param) {
+    final loc = AppLocalizations.of(context)!;
     switch (param.toUpperCase()) {
       case 'PM2.5':
       case 'PM25':
       case 'PM25M':
       case 'PM2.5M':
-        return 'Partículas finas inhalables con diámetros de 2.5 micrómetros o menos.';
+        return loc.pm25_desc;
       case 'PM10':
       case 'PM10M':
-        return 'Partículas inhalables con diámetros de 10 micrómetros o menos.';
+        return loc.pm10_desc;
       case 'O3':
       case 'O3M':
-        return 'Ozono troposférico, irritante respiratorio que puede agravar problemas respiratorios.';
+        return loc.o3_desc;
       case 'NO2':
       case 'NO2M':
-        return 'Dióxido de nitrógeno, puede causar irritación y empeorar enfermedades respiratorias.';
+        return loc.no2_desc;
       case 'SO2':
       case 'SO2M':
-        return 'Dióxido de azufre, puede irritar las vías respiratorias y agravar el asma.';
+        return loc.so2_desc;
       case 'CO':
       case 'COM':
-        return 'Monóxido de carbono, reduce la capacidad de la sangre para transportar oxígeno.';
+        return loc.co_desc;
       default:
-        return 'Información sobre este contaminante.';
+        return loc.genericPollutantInfo;
     }
   }
 
@@ -80,7 +83,7 @@ class PollutantDetailScreen extends StatelessWidget {
           ),
         ),
         title: Text(
-          'Detalle: $displayLabel',
+          AppLocalizations.of(context)!.pollutantDetailTitle,
           style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -141,7 +144,7 @@ class PollutantDetailScreen extends StatelessWidget {
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Text(
-                          _getDescription(parameter),
+                          _getDescription(context, parameter),
                           textAlign: TextAlign.center,
                           style: TextStyle(fontSize: 14, color: secondaryTextColor, height: 1.5),
                         ),
@@ -167,7 +170,7 @@ class PollutantDetailScreen extends StatelessWidget {
                             ),
                             const SizedBox(width: 12),
                             Text(
-                              _getQualityLabel(parameter, value),
+                              _getQualityLabel(parameter, value, context),
                               style: TextStyle(color: primaryTextColor, fontWeight: FontWeight.bold, fontSize: 14),
                             ),
                           ],
@@ -193,27 +196,27 @@ class PollutantDetailScreen extends StatelessWidget {
                 // Fallback: mostrar la información genérica si no existe dato específico
                 return Column(
                   children: [
-                    _buildSectionHeader(Icons.medical_services_outlined, 'Riesgos', Colors.green),
+                    _buildSectionHeader(Icons.medical_services_outlined, AppLocalizations.of(context)!.risksTitle, Colors.green),
                     const SizedBox(height: 10),
+                    // Localized fallback risk entries for pollutants without specific info
                     _buildInfoCard(
                       context,
                       icon: Icons.air,
                       iconColor: Colors.redAccent,
                       bgColor: const Color(0xFFFFEBEE),
-                      title: 'Problemas Respiratorios',
-                      description:
-                          'La exposición a corto plazo puede irritar los pulmones y causar tos o dificultad para respirar.',
+                      title: AppLocalizations.of(context)!.respiratoryProblems,
+                      description: AppLocalizations.of(context)!.respiratoryProblemsDesc,
                     ),
                     const SizedBox(height: 20),
-                    _buildSectionHeader(Icons.factory_outlined, 'Fuentes', Colors.green),
+                    _buildSectionHeader(Icons.factory_outlined, AppLocalizations.of(context)!.sourcesTitle, Colors.green),
                     const SizedBox(height: 10),
                     _buildInfoCard(
                       context,
                       icon: Icons.directions_car,
                       iconColor: Colors.blueGrey,
                       bgColor: const Color(0xFFECEFF1),
-                      title: 'Emisiones de Vehículos',
-                      description: 'Automóviles, camiones y autobuses.',
+                      title: AppLocalizations.of(context)!.vehicleEmissions,
+                      description: AppLocalizations.of(context)!.vehicleEmissionsDesc,
                     ),
                     const SizedBox(height: 40),
                   ],
@@ -226,10 +229,10 @@ class PollutantDetailScreen extends StatelessWidget {
 
 
                   // Riesgos
-                  _buildSectionHeader(Icons.medical_services_outlined, 'Riesgos', Colors.green),
+                  _buildSectionHeader(Icons.medical_services_outlined, AppLocalizations.of(context)!.risksTitle, Colors.green),
                   const SizedBox(height: 10),
                   if (info.risks.shortTerm.isNotEmpty) ...[
-                    const Text('A corto plazo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(AppLocalizations.of(context)!.shortTerm, style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -241,7 +244,7 @@ class PollutantDetailScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                   ],
                   if (info.risks.longTerm.isNotEmpty) ...[
-                    const Text('A largo plazo', style: TextStyle(fontWeight: FontWeight.bold)),
+                    Text(AppLocalizations.of(context)!.longTerm, style: const TextStyle(fontWeight: FontWeight.bold)),
                     const SizedBox(height: 8),
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -255,12 +258,13 @@ class PollutantDetailScreen extends StatelessWidget {
 
                   const SizedBox(height: 8),
                   // Fuentes
-                  _buildSectionHeader(Icons.factory_outlined, 'Fuentes', Colors.green),
+                  _buildSectionHeader(Icons.factory_outlined, AppLocalizations.of(context)!.sourcesTitle, Colors.green),
                   const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: info.sources.map((s) {
+                      final label = AppLocalizations.of(context)!.translateKey(s.textKey);
                       return Container(
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         decoration: BoxDecoration(
@@ -279,7 +283,7 @@ class PollutantDetailScreen extends StatelessWidget {
                           children: [
                             Icon(s.icon, color: Colors.blueGrey, size: 18),
                             const SizedBox(width: 8),
-                            Text(s.text, style: TextStyle(fontSize: 13, color: secondaryTextColor)),
+                            Text(label, style: TextStyle(fontSize: 13, color: secondaryTextColor)),
                           ],
                         ),
                       );
@@ -288,7 +292,7 @@ class PollutantDetailScreen extends StatelessWidget {
 
                   // Método de medición (moved to the end; simplified)
                   const SizedBox(height: 12),
-                  _buildSectionHeader(Icons.science, 'Método de medición', Colors.green),
+                  _buildSectionHeader(Icons.science, AppLocalizations.of(context)!.measurementMethod, Colors.green),
                   const SizedBox(height: 8),
                   Container(
                     width: double.infinity,
@@ -308,7 +312,7 @@ class PollutantDetailScreen extends StatelessWidget {
                       children: [
                         Icon(info.method.icon, color: Colors.blueGrey, size: 18),
                         const SizedBox(width: 12),
-                        Expanded(child: Text(info.method.method, style: TextStyle(fontSize: 13, color: secondaryTextColor))),
+                        Expanded(child: Text(AppLocalizations.of(context)!.translateKey(info.method.methodKey), style: TextStyle(fontSize: 13, color: secondaryTextColor))),
                       ],
                     ),
                   ),
@@ -429,17 +433,18 @@ class PollutantDetailScreen extends StatelessWidget {
     }
   }
 
-  String _getQualityLabel(String parameter, double? value) {
-    if (value == null) return 'Datos no disponibles';
+  String _getQualityLabel(String parameter, double? value, BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    if (value == null) return loc.dataUnavailable;
     final color = AirQualityScale.getColorForParameter(parameter, value);
     // Map color to text label using categories (a simplification)
     // Reusing AirQualityScale thresholds indirectly by comparing colors
-    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.good)) return 'Calidad Buena';
-    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.acceptable)) return 'Calidad Aceptable';
-    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.bad)) return 'Calidad Mala';
-    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.veryBad)) return 'Calidad Muy Mala';
-    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.extremelyBad)) return 'Calidad Extremadamente Mala';
-    return 'Calidad Desconocida';
+    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.good)) return loc.airQualityGood;
+    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.acceptable)) return loc.airQualityAcceptable;
+    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.bad)) return loc.airQualityBad;
+    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.veryBad)) return loc.airQualityVeryBad;
+    if (color == AirQualityScale.getColorForCategory(AirQualityCategory.extremelyBad)) return loc.airQualityExtremelyBad;
+    return loc.airQualityUnknown;
   }
 
   // Normaliza parámetros a claves del mapa de datos
@@ -474,14 +479,16 @@ class PollutantDetailScreen extends StatelessWidget {
   }
 
 
-  Widget _buildRiskCard(BuildContext context, dynamic namedIcon) {
-    final icon = (namedIcon.icon is IconData) ? namedIcon.icon as IconData : Icons.help_outline;
-    final text = (namedIcon.text as String?) ?? '';
+  Widget _buildRiskCard(BuildContext context, NamedIcon namedIcon) {
+    final icon = namedIcon.icon;
     final theme = Theme.of(context);
     final isDarkRow = theme.brightness == Brightness.dark;
     final bg = theme.cardTheme.color ?? (isDarkRow ? const Color(0xFF0F1724) : Colors.white);
     final shadowColor = theme.shadowColor.withValues(alpha: isDarkRow ? 0.6 : 0.02);
     final textColor = theme.textTheme.bodySmall?.color ?? (isDarkRow ? Colors.grey[300] : Colors.black87);
+
+    final label = AppLocalizations.of(context)!.translateKey(namedIcon.textKey);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
@@ -501,7 +508,7 @@ class PollutantDetailScreen extends StatelessWidget {
         children: [
           Icon(icon, size: 18, color: Colors.redAccent),
           const SizedBox(width: 12),
-          Expanded(child: Text(text, style: TextStyle(fontSize: 13, color: textColor))),
+          Expanded(child: Text(label, style: TextStyle(fontSize: 13, color: textColor))),
         ],
       ),
     );

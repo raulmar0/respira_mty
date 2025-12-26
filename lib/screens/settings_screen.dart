@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/language_selection_sheet.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -23,7 +24,7 @@ class SettingsScreen extends ConsumerWidget {
           onPressed: () {},
         ),
         title: Text(
-          "Ajustes",
+          AppLocalizations.of(context)!.settingsTitle,
           style: theme.appBarTheme.titleTextStyle,
         ),
         centerTitle: false,
@@ -38,15 +39,15 @@ class SettingsScreen extends ConsumerWidget {
 
 
               // 2. Sección Notificaciones
-              const _SectionHeader(title: "NOTIFICACIONES"),
+              _SectionHeader(title: AppLocalizations.of(context)!.notificationsHeader),
               _SettingsGroup(
                 children: [
                   _SettingsTile(
                     icon: Icons.warning_amber_rounded,
                     iconColor: Colors.redAccent,
                     iconBg: const Color(0xFFFDE8E8),
-                    title: "Alertas Críticas",
-                    subtitle: "Notificar cuando el aire sea peligroso",
+                    title: AppLocalizations.of(context)!.criticalAlertsTitle,
+                    subtitle: AppLocalizations.of(context)!.criticalAlertsSubtitle,
                     trailing: Switch(
                       value: isCriticalEnabled,
                       activeThumbColor: Colors.white,
@@ -55,7 +56,7 @@ class SettingsScreen extends ConsumerWidget {
                         ref.read(criticalAlertsProvider.notifier).setEnabled(v);
                         final messenger = ScaffoldMessenger.of(context);
                         messenger.showSnackBar(
-                          SnackBar(content: Text(v ? 'Alertas críticas activadas' : 'Alertas críticas desactivadas')),
+                          SnackBar(content: Text(v ? AppLocalizations.of(context)!.alertsEnabled : AppLocalizations.of(context)!.alertsDisabled)),
                         );
                       },
                     ),
@@ -65,7 +66,7 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 25),
 
               // 3. Sección Visualización
-              const _SectionHeader(title: "VISUALIZACIÓN"),
+              _SectionHeader(title: AppLocalizations.of(context)!.visualizationHeader),
               _SettingsGroup(
                 children: [
 
@@ -73,7 +74,7 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.language,
                     iconColor: Colors.blue,
                     iconBg: const Color(0xFFE3F2FD),
-                    title: "Idioma",
+                    title: AppLocalizations.of(context)!.languageTitle,
                     trailingText: currentLang.displayName,
                     showArrow: true,
                     onTap: () {
@@ -90,19 +91,19 @@ class SettingsScreen extends ConsumerWidget {
                     icon: Icons.dark_mode_outlined,
                     iconColor: Colors.blueGrey,
                     iconBg: const Color(0xFFECEFF1),
-                    title: "Tema",
+                    title: AppLocalizations.of(context)!.themeTitle,
                     trailing: PopupMenuButton<ThemeModeOption>(
                       onSelected: (ThemeModeOption selected) {
                         ref.read(themeModeProvider.notifier).setThemeMode(selected);
                       },
-                      itemBuilder: (BuildContext context) => ThemeModeOption.values.map((option) => _buildMenuItem(option, theme, themeModeOption)).toList(),
+                      itemBuilder: (BuildContext context) => ThemeModeOption.values.map((option) => _buildMenuItem(context, option, theme, themeModeOption)).toList(),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       elevation: 4,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            themeModeOption.displayName,
+                            themeModeOption.localized(context),
                             style: theme.textTheme.labelMedium,
                           ),
                           const SizedBox(width: 8),
@@ -116,16 +117,16 @@ class SettingsScreen extends ConsumerWidget {
               const SizedBox(height: 25),
 
               // 4. Sección Información
-              const _SectionHeader(title: "INFORMACIÓN"),
-              const _SettingsGroup(
+              _SectionHeader(title: AppLocalizations.of(context)!.infoHeader),
+              _SettingsGroup(
                 children: [
                   _SettingsTile(
-                    title: "Política de Privacidad",
+                    title: AppLocalizations.of(context)!.privacyPolicy,
                     showArrow: true,
                   ),
                   _CustomDivider(),
                   _SettingsTile(
-                    title: "Acerca de la App",
+                    title: AppLocalizations.of(context)!.aboutApp,
                     showArrow: true,
                   ),
                 ],
@@ -138,14 +139,14 @@ class SettingsScreen extends ConsumerWidget {
               Center(
                 child: Column(
                   children: [
-                    Text("Versión 1.0.2", style: theme.textTheme.labelSmall),
+                    Text(AppLocalizations.of(context)!.versionLabel, style: theme.textTheme.labelSmall),
                     const SizedBox(height: 4),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Icon(Icons.cloud, size: 12, color: theme.iconTheme.color?.withValues(alpha: 0.6)),
                         const SizedBox(width: 4),
-                        Text("Datos provistos por SIMA N.L.", style: theme.textTheme.labelSmall),
+                        Text(AppLocalizations.of(context)!.dataProviderCredit, style: theme.textTheme.labelSmall),
                       ],
                     )
                   ],
@@ -156,12 +157,12 @@ class SettingsScreen extends ConsumerWidget {
           ),
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, stack) => Center(child: Text('Error loading theme: $error')),
+        error: (error, stack) => Center(child: Text(AppLocalizations.of(context)!.errorLoadingTheme(error))),
       ),
     );
   }
 
-  PopupMenuItem<ThemeModeOption> _buildMenuItem(ThemeModeOption option, ThemeData theme, ThemeModeOption current) {
+  PopupMenuItem<ThemeModeOption> _buildMenuItem(BuildContext context, ThemeModeOption option, ThemeData theme, ThemeModeOption current) {
     final bool isSelected = current == option;
 
     // Simple styling: selected has a background
@@ -178,7 +179,7 @@ class SettingsScreen extends ConsumerWidget {
           borderRadius: BorderRadius.circular(8),
         ),
         child: Text(
-          option.displayName,
+          option.localized(context),
           style: TextStyle(color: selectedTextColor),
         ),
       ),

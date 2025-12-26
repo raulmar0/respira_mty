@@ -8,6 +8,7 @@ import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
 import '../utils/app_colors.dart';
 import '../utils/air_quality_scale.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 class StationsMapScreen extends ConsumerStatefulWidget {
   const StationsMapScreen({super.key});
@@ -209,7 +210,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        'No se pudo cargar la calidad del aire. Revisa tu conexión.',
+                        AppLocalizations.of(context)!.errorLoadingAirQuality,
                         style: TextStyle(
                           color: Colors.grey[800],
                           fontWeight: FontWeight.w600,
@@ -246,7 +247,7 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                           ],
                         ),
                         child: Text(
-                          'Mapa de Estaciones',
+                          AppLocalizations.of(context)!.stationsMapTitle,
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
@@ -263,7 +264,8 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                     child: Row(
                       children: [
                               _buildFilterChip(
-                          'All Stations',
+                          AppLocalizations.of(context)!.filterAll,
+                          filter: _StationFilter.all,
                           isSelected: _activeFilter == _StationFilter.all,
                           onTap: () {
                             setState(() {
@@ -274,7 +276,8 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          'Good',
+                          AppLocalizations.of(context)!.filterGood,
+                          filter: _StationFilter.good,
                           isSelected: _activeFilter == _StationFilter.good,
                           onTap: () {
                             setState(() {
@@ -285,7 +288,8 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          'Moderate',
+                          AppLocalizations.of(context)!.filterModerate,
+                          filter: _StationFilter.moderate,
                           isSelected: _activeFilter == _StationFilter.moderate,
                           onTap: () {
                             setState(() {
@@ -296,7 +300,8 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                         ),
                         const SizedBox(width: 8),
                         _buildFilterChip(
-                          'Unhealthy',
+                          AppLocalizations.of(context)!.filterUnhealthy,
+                          filter: _StationFilter.unhealthy,
                           isSelected: _activeFilter == _StationFilter.unhealthy,
                           onTap: () {
                             setState(() {
@@ -362,27 +367,28 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
     );
   }
 
-  Widget _buildFilterChip(String label, {bool isSelected = false, VoidCallback? onTap}) {
-    // Map certain labels to global status colors
-    StatusColors? statusColors;
-    final lowLabel = label.toLowerCase();
+  Widget _buildFilterChip(String label, {required _StationFilter filter, bool isSelected = false, VoidCallback? onTap}) {
+    // Map filter enum to global status colors (language independent)
+    late final StatusColors statusColors;
 
-    // 'All Stations' should show maintenance colors (Fuera de Servicio)
-    if (lowLabel.contains('all') || lowLabel.contains('todas')) {
-      statusColors = AppColors.getColorsForStatus(Status.fueraDeServicio);
-    } else if (lowLabel == 'good') {
-      statusColors = AppColors.getColorsForStatus(Status.good);
-    } else if (lowLabel == 'moderate') {
-      statusColors = AppColors.getColorsForStatus(Status.moderate);
-    } else if (lowLabel == 'unhealthy') {
-      statusColors = AppColors.getColorsForStatus(Status.unhealthy);
+    switch (filter) {
+      case _StationFilter.all:
+        statusColors = AppColors.getColorsForStatus(Status.fueraDeServicio);
+        break;
+      case _StationFilter.good:
+        statusColors = AppColors.getColorsForStatus(Status.good);
+        break;
+      case _StationFilter.moderate:
+        statusColors = AppColors.getColorsForStatus(Status.moderate);
+        break;
+      case _StationFilter.unhealthy:
+        statusColors = AppColors.getColorsForStatus(Status.unhealthy);
+        break;
     }
 
-    final Color backgroundColor = isSelected
-        ? const Color(0xFF1A1F36)
-        : (statusColors?.background ?? Colors.white);
+    final Color backgroundColor = isSelected ? const Color(0xFF1A1F36) : statusColors.background;
 
-    final Color textColor = isSelected ? Colors.white : (statusColors?.text ?? const Color(0xFFD35400));
+    final Color textColor = isSelected ? Colors.white : statusColors.text;
 
     return GestureDetector(
       onTap: onTap,

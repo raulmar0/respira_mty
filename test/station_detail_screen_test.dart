@@ -3,9 +3,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:respira_mty/screens/station_detail_screen.dart';
 import 'package:respira_mty/models/station.dart';
 import 'package:respira_mty/utils/air_quality_scale.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 void main() {
-  Widget makeTestable(Station station) => MaterialApp(
+
+Widget makeTestable(Station station) => MaterialApp(
+  locale: const Locale('es'),
+  localizationsDelegates: AppLocalizations.localizationsDelegates,
+  supportedLocales: AppLocalizations.supportedLocales, 
         home: Scaffold(
           body: StationDetailScreenLight(station: station),
         ),
@@ -25,21 +30,23 @@ void main() {
 
     await tester.pumpWidget(makeTestable(station));
 
+    final loc = AppLocalizations.of(tester.element(find.byType(StationDetailScreenLight)))!;
+
     // Initially show contaminants
-    expect(find.text('Partículas PM2.5'), findsOneWidget);
+    expect(find.text(loc.pm2_5), findsOneWidget);
 
     // Tap Clima
-    await tester.tap(find.text('Clima'));
+    await tester.tap(find.text(loc.tabWeather));
     await tester.pumpAndSettle();
 
     // The embedded weather section should be visible
-    expect(find.text('Temperatura Actual'), findsOneWidget);
+    expect(find.text(loc.temperatureNow), findsOneWidget);
 
     // Tap Contaminantes
-    await tester.tap(find.text('Contaminantes'));
+    await tester.tap(find.text(loc.tabPollutants));
     await tester.pumpAndSettle();
 
-    expect(find.text('Partículas PM2.5'), findsOneWidget);
+    expect(find.text(loc.pm2_5), findsOneWidget);
   });
 
   testWidgets('zoom buttons change internal zoom state', (tester) async {

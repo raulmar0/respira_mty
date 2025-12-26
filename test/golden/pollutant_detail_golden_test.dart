@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/screens/pollutant_detail_screen.dart';
@@ -11,8 +12,13 @@ void main() {
       if (!updateGoldens) return;
 
       await tester.pumpWidget(
-        const ProviderScope(
-          child: MaterialApp(home: PollutantDetailScreen(parameter: 'PM25M', value: 12.0, unit: 'µg/m³')),
+        ProviderScope(
+          child: MaterialApp(
+            locale: const Locale('es'),
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            home: PollutantDetailScreen(parameter: 'PM25M', value: 12.0, unit: 'µg/m³'),
+          ),
         ),
       );
       await tester.pumpAndSettle();
@@ -26,7 +32,10 @@ void main() {
       await tester.pumpWidget(
         ProviderScope(
           child: MaterialApp(
+            locale: const Locale('es'),
             theme: darkTheme,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
             home: const PollutantDetailScreen(parameter: 'PM25M', value: 12.0, unit: 'µg/m³'),
           ),
         ),

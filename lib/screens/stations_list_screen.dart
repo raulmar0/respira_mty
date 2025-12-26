@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
 import '../widgets/sort_button.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 
 class StationsListScreen extends ConsumerStatefulWidget {
@@ -49,7 +50,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Estaciones',
+                    AppLocalizations.of(context)!.stationsTitle,
                     style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                   Row(
@@ -83,24 +84,25 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                                 ),
                               )
                             : IconButton(
-                                tooltip: 'Actualizar estaciones',
+                                tooltip: AppLocalizations.of(context)!.updateStationsTooltip,
                                 icon: const Icon(Icons.refresh),
                                 color: theme.iconTheme.color,
                                 onPressed: () async {
                                   if (_isRefreshing) return;
                                   setState(() => _isRefreshing = true);
                                   final messenger = ScaffoldMessenger.of(context);
+                                  final loc = AppLocalizations.of(context)!;
                                   messenger.showSnackBar(
-                                    const SnackBar(content: Text('Actualizando estaciones...')),
+                                    SnackBar(content: Text(loc.updatingStations)),
                                   );
                                   try {
                                     final updatedList = await ref.refresh(airQualityProvider.future);
                                     messenger.showSnackBar(
-                                      SnackBar(content: Text('Estaciones actualizadas: ${updatedList.length}')),
+                                      SnackBar(content: Text(loc.stationsUpdated(updatedList.length))),
                                     );
                                   } catch (e) {
                                     messenger.showSnackBar(
-                                      SnackBar(content: Text('Error al actualizar estaciones: $e')),
+                                      SnackBar(content: Text(loc.updatingError(e))),
                                     );
                                     debugPrint('Error refreshing airQualityProvider: $e');
                                   } finally {
@@ -171,7 +173,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                     autofocus: true,
                     decoration: InputDecoration(
                       border: InputBorder.none,
-                      hintText: 'Buscar estación…',
+                      hintText: AppLocalizations.of(context)!.searchHint,
                       suffixIcon: query.isEmpty
                           ? null
                           : IconButton(
@@ -195,8 +197,8 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
               Center(
                 child: Text(
                   lastUpdate != null
-                      ? 'LAST UPDATED: ${_formatTime(lastUpdate)}'
-                      : 'LAST UPDATED: —',
+                      ? AppLocalizations.of(context)!.lastUpdatedPrefix(_formatTime(lastUpdate))
+                      : AppLocalizations.of(context)!.lastUpdatedUnknown,
                   style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.bold,
@@ -211,7 +213,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                 child: Row(
                   children: [
                     _buildFilterChip(
-                      'All Stations',
+                      AppLocalizations.of(context)!.filterAll,
                       isSelected: selectedFilter == StationsListFilter.all,
                       onTap: () => ref
                           .read(stationsListFilterProvider.notifier)
@@ -219,7 +221,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                     ),
                     const SizedBox(width: 12),
                     _buildFilterChip(
-                      'Favorites',
+                      AppLocalizations.of(context)!.filterFavorites,
                       isSelected:
                           selectedFilter == StationsListFilter.favorites,
                       onTap: () => ref
@@ -228,7 +230,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                     ),
                     const SizedBox(width: 12),
                     _buildFilterChip(
-                      'Nearest',
+                      AppLocalizations.of(context)!.filterNearest,
                       isSelected: selectedFilter == StationsListFilter.nearest,
                       onTap: () => ref
                           .read(stationsListFilterProvider.notifier)

@@ -6,6 +6,7 @@ import '../models/station.dart';
 import '../utils/air_quality_scale.dart';
 import '../utils/app_colors.dart';
 import 'pollutant_detail_screen.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 class StationDetailScreenLight extends StatefulWidget {
   final Station station;
@@ -261,7 +262,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                       : null,
                                 ),
                                 child: Text(
-                                  "Contaminantes",
+                                  AppLocalizations.of(context)!.tabPollutants,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
@@ -293,7 +294,7 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                       : null,
                                 ),
                                 child: Text(
-                                  "Clima",
+                                  AppLocalizations.of(context)!.tabWeather,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     color: !showPollutants ? (isDark ? Colors.white : maintenanceTextLight) : secondaryTextColor,
@@ -324,15 +325,15 @@ class _StationDetailScreenLightState extends State<StationDetailScreenLight> {
                                   : (val as double).toStringAsFixed(0));
                         final unit = p['unit'] as String? ?? '';
 
-                        // Mapeo de nombre completo
+                        // Mapeo de nombre completo usando localizaciones
                         final fullNames = {
-                          'PM25': 'Partículas PM2.5',
-                          'PM2.5': 'Partículas PM2.5',
-                          'PM10': 'Partículas PM10',
-                          'O3': 'Ozono',
-                          'NO2': 'Dióxido de Nitrógeno',
-                          'SO2': 'Dióxido de Azufre',
-                          'CO': 'Monóxido de Carbono',
+                          'PM25': AppLocalizations.of(context)!.pm2_5,
+                          'PM2.5': AppLocalizations.of(context)!.pm2_5,
+                          'PM10': AppLocalizations.of(context)!.pm10,
+                          'O3': AppLocalizations.of(context)!.o3,
+                          'NO2': AppLocalizations.of(context)!.no2,
+                          'SO2': AppLocalizations.of(context)!.so2,
+                          'CO': AppLocalizations.of(context)!.co,
                         };
 
                         final displayName =
@@ -570,7 +571,8 @@ class _WeatherSection extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 6),
-              const Text('Partly Cloudy', style: TextStyle(color: Colors.white70, fontSize: 14)),
+                Text(AppLocalizations.of(context)!.partlyCloudy, style: TextStyle(color: Colors.white70, fontSize: 14)),
+
               const SizedBox(height: 12),
               Divider(color: Colors.white.withValues(alpha: 0.25)),
               const SizedBox(height: 8),
@@ -616,7 +618,8 @@ class _WeatherSection extends StatelessWidget {
         const SizedBox(height: 20),
 
         // 3. Pronóstico por hora
-        Text('Pronóstico', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor)),
+        Text(AppLocalizations.of(context)!.forecastTitle, style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: primaryTextColor)),
+
         const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(14),

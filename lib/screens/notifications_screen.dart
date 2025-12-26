@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 import '../providers/settings_provider.dart';
 import 'settings_screen.dart';
 
@@ -34,13 +35,13 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    "Notificaciones",
+                    AppLocalizations.of(context)!.notificationsTitle,
                     style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                   TextButton(
                     onPressed: () {},
                     // Mantenemos el color primario para la acción
-                    child: Text("Marcar leídos", style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
+                    child: Text(AppLocalizations.of(context)!.markAllRead, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
                   )
                 ],
               ),
@@ -82,7 +83,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                       ),
                       TextButton(
                         onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const SettingsScreen())),
-                        child: const Text('Ir a Ajustes'),
+                        child: Text(AppLocalizations.of(context)!.goToSettings),
                       )
                     ],
                   ),

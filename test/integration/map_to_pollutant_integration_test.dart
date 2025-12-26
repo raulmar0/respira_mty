@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:respira_mty/models/station.dart';
@@ -29,7 +30,12 @@ void main() {
         overrides: [
           airQualityProvider.overrideWith((ref) async => [station]),
         ],
-        child: const MaterialApp(home: MainShell()),
+        child: MaterialApp(
+          locale: const Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const MainShell(),
+        ),
       ),
     );
 
@@ -37,8 +43,11 @@ void main() {
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
-    // Tap 'List' tab to show list
-    await tester.tap(find.text('List'));
+    // Tap localized 'List' tab to show list
+    final loc = AppLocalizations.of(tester.element(find.byType(MainShell)))!;
+    // Tap the label inside the BottomNavigationBar (avoid tapping header title)
+    final bottomNav = find.byType(BottomNavigationBar);
+    await tester.tap(find.descendant(of: bottomNav, matching: find.text(loc.stationsTitle)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

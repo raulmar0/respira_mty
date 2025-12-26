@@ -12,6 +12,7 @@ import 'package:respira_mty/models/station.dart';
 import 'package:respira_mty/providers/station_provider.dart';
 import 'package:respira_mty/screens/stations_list_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('Stations list loads and favorites toggle works', (
@@ -36,7 +37,12 @@ void main() {
         overrides: [
           airQualityProvider.overrideWith((ref) async => [station]),
         ],
-        child: const MaterialApp(home: StationsListScreen()),
+        child: MaterialApp(
+          locale: const Locale('es'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const StationsListScreen(),
+        ),
       ),
     );
 

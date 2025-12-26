@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/station_provider.dart';
 import '../utils/app_colors.dart';
 
@@ -44,14 +44,15 @@ class _SortButtonState extends ConsumerState<SortButton> {
         final target = _mapOptionToStationsSort(selected);
         ref.read(stationsSortProvider.notifier).set(target);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${_labelForOption(selected)} seleccionado')),
+          SnackBar(content: Text(AppLocalizations.of(context)!.optionSelected(_labelForOption(context, selected)))),
+
         );
       },
       itemBuilder: (BuildContext context) => [
-        _buildMenuItem(SortOption.plusQuality, "+ Calidad", theme),
-        _buildMenuItem(SortOption.minusQuality, "- Calidad", theme),
-        _buildMenuItem(SortOption.aToZ, "A → Z", theme),
-        _buildMenuItem(SortOption.zToA, "Z → A", theme),
+        _buildMenuItem(SortOption.plusQuality, AppLocalizations.of(context)!.sortPlusQuality, theme),
+        _buildMenuItem(SortOption.minusQuality, AppLocalizations.of(context)!.sortMinusQuality, theme),
+        _buildMenuItem(SortOption.aToZ, AppLocalizations.of(context)!.sortAToZ, theme),
+        _buildMenuItem(SortOption.zToA, AppLocalizations.of(context)!.sortZToA, theme),
       ],
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       elevation: 4,
@@ -116,16 +117,17 @@ class _SortButtonState extends ConsumerState<SortButton> {
     );
   }
 
-  String _labelForOption(SortOption option) {
+  String _labelForOption(BuildContext context, SortOption option) {
+    final loc = AppLocalizations.of(context)!;
     switch (option) {
       case SortOption.plusQuality:
-        return '+ Calidad';
+        return loc.sortPlusQuality;
       case SortOption.minusQuality:
-        return '- Calidad';
+        return loc.sortMinusQuality;
       case SortOption.aToZ:
-        return 'A → Z';
+        return loc.sortAToZ;
       case SortOption.zToA:
-        return 'Z → A';
+        return loc.sortZToA;
     }
   }
 

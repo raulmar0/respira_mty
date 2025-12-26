@@ -5,6 +5,7 @@ import 'package:respira_mty/models/station.dart';
 import 'package:respira_mty/providers/station_provider.dart';
 import 'package:respira_mty/screens/main_shell.dart';
 import 'package:respira_mty/widgets/station_card.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 void main() {
   testWidgets('navigation within shell keeps bottom navigation visible', (tester) async {
@@ -27,7 +28,11 @@ void main() {
         overrides: [
           airQualityProvider.overrideWith((ref) async => [station]),
         ],
-        child: const MaterialApp(home: MainShell()),
+        child: MaterialApp(
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: const MainShell(),
+        ),
       ),
     );
 
@@ -39,8 +44,11 @@ void main() {
     final scaffoldFinder = find.byWidgetPredicate((w) => w is Scaffold && w.bottomNavigationBar != null);
     expect(scaffoldFinder, findsOneWidget);
 
-    // Tap 'List' tab to show list
-    await tester.tap(find.text('List'));
+    // Tap localized 'List' tab to show list
+    final loc = AppLocalizations.of(tester.element(find.byType(MainShell)))!;
+    // Tap the label inside the BottomNavigationBar (avoid tapping header title)
+    final bottomNav = find.byType(BottomNavigationBar);
+    await tester.tap(find.descendant(of: bottomNav, matching: find.text(loc.stationsTitle)));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 300));
 

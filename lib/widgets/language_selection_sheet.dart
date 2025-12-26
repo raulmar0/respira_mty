@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/settings_provider.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 
 /// Bottom sheet para selección de idioma.
 /// Usa el provider `languageProvider` para leer/guardar la selección.
@@ -19,7 +20,13 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
   void initState() {
     super.initState();
     final current = ref.read(languageProvider);
-    _selectedIndex = current == AppLanguage.spanish ? 0 : 1;
+    _selectedIndex = current == AppLanguage.spanish
+        ? 0
+        : current == AppLanguage.english
+            ? 1
+            : current == AppLanguage.french
+                ? 2
+                : 3;
   }
 
   @override
@@ -50,23 +57,23 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
               ),
             ),
             Text(
-              "Seleccionar idioma",
+              AppLocalizations.of(context)!.languageTitle,
               style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Text(
-              "Elige el idioma para la interfaz de la aplicación.",
+              AppLocalizations.of(context)!.languageDescription,
               style: theme.textTheme.bodyMedium?.copyWith(color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.9)),
             ),
             const SizedBox(height: 24),
 
-            _buildOption(0, "Español", "🇲🇽", activeColor, theme),
+            _buildOption(0, AppLanguage.spanish.displayName, "🇲🇽", activeColor, theme),
             const SizedBox(height: 12),
-            _buildOption(1, "English", "🇺🇸", activeColor, theme),
-            // Mantenemos la opción Francés visualmente por si se quiere añadir soporte,
-            // al guardar mapearemos 2 -> English para evitar estados inválidos.
+            _buildOption(1, AppLanguage.english.displayName, "🇺🇸", activeColor, theme),
             const SizedBox(height: 12),
-            _buildOption(2, "Français", "🇫🇷", activeColor, theme),
+            _buildOption(2, AppLanguage.french.displayName, "🇫🇷", activeColor, theme),
+            const SizedBox(height: 12),
+            _buildOption(3, AppLanguage.korean.displayName, "🇰🇷", activeColor, theme),
             const SizedBox(height: 30),
 
             SizedBox(
@@ -74,11 +81,28 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
               height: 55,
               child: ElevatedButton(
                 onPressed: () {
-                  // Map index to AppLanguage (2 -> english fallback)
-                  final lang = _selectedIndex == 0 ? AppLanguage.spanish : AppLanguage.english;
+                  late AppLanguage lang;
+                  switch (_selectedIndex) {
+                    case 0:
+                      lang = AppLanguage.spanish;
+                      break;
+                    case 1:
+                      lang = AppLanguage.english;
+                      break;
+                    case 2:
+                      lang = AppLanguage.french;
+                      break;
+                    case 3:
+                      lang = AppLanguage.korean;
+                      break;
+                    default:
+                      lang = AppLanguage.english;
+                  }
+
                   ref.read(languageProvider.notifier).setLanguage(lang);
                   Navigator.pop(context);
                 },
+
                 style: ElevatedButton.styleFrom(
                   backgroundColor: activeColor,
                   shape: RoundedRectangleBorder(
@@ -87,7 +111,7 @@ class _LanguageSelectionSheetState extends ConsumerState<LanguageSelectionSheet>
                   elevation: 0,
                 ),
                 child: Text(
-                  "Guardar cambios",
+                  AppLocalizations.of(context)!.saveChanges,
                   style: theme.textTheme.labelLarge?.copyWith(color: theme.colorScheme.onPrimary, fontSize: 16, fontWeight: FontWeight.w600),
                 ),
               ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:respira_mty/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:respira_mty/screens/pollutant_detail_screen.dart';
 
@@ -6,7 +7,10 @@ void main() {
   testWidgets('PollutantDetailScreen builds in dark theme', (WidgetTester tester) async {
     await tester.pumpWidget(
       MaterialApp(
+        locale: const Locale('es'),
         theme: ThemeData.dark(),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
         home: const Scaffold(body: PollutantDetailScreen(parameter: 'PM10', value: 60.0, unit: 'µg/m³')),
       ),
     );
