@@ -478,4 +478,15 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get airQualityUnknown => '알 수 없음';
+
+  @override
+  String get shareSuccess => '공유됨';
+
+  @override
+  String get shareError => '공유 중 오류';
+
+  @override
+  String shareText(Object name) {
+    return '스테이션 공유: $name';
+  }
 }

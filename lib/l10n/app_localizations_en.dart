@@ -478,4 +478,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get airQualityUnknown => 'Unknown';
+
+  @override
+  String get shareSuccess => 'Shared';
+
+  @override
+  String get shareError => 'Error sharing';
+
+  @override
+  String shareText(Object name) {
+    return 'Sharing station $name';
+  }
 }

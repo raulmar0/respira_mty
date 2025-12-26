@@ -1016,6 +1016,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unknown'**
   String get airQualityUnknown;
+
+  /// No description provided for @shareSuccess.
+  ///
+  /// In en, this message translates to:
+  /// **'Shared'**
+  String get shareSuccess;
+
+  /// No description provided for @shareError.
+  ///
+  /// In en, this message translates to:
+  /// **'Error sharing'**
+  String get shareError;
+
+  /// Text used when sharing a station
+  ///
+  /// In en, this message translates to:
+  /// **'Sharing station {name}'**
+  String shareText(Object name);
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

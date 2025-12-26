@@ -477,5 +477,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get airQualityExtremelyBad => 'Extrêmement mauvaise';
 
   @override
-  String get airQualityUnknown => 'Inconnue';
+  String get airQualityUnknown => 'Inconnu';
+
+  @override
+  String get shareSuccess => 'Partagé';
+
+  @override
+  String get shareError => 'Erreur lors du partage';
+
+  @override
+  String shareText(Object name) {
+    return 'Partage de la station $name';
+  }
 }
