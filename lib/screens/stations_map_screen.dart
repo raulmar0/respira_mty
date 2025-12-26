@@ -31,6 +31,12 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final cardColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+    final iconColor = theme.iconTheme.color ?? (isDark ? Colors.white : Colors.black87);
+    final headerBg = cardColor;
+    final headerTextColor = theme.textTheme.titleLarge?.color ?? (isDark ? Colors.white : Colors.black87);
+    final headerShadowAlpha = isDark ? 0.6 : 0.1;
     final stationsAsync = ref.watch(airQualityProvider);
     final favoriteIds = ref.watch(favoriteStationsProvider);
     final stationLocationAccent = theme.colorScheme.primary;
@@ -229,21 +235,22 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
                           vertical: 10,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: headerBg,
                           borderRadius: BorderRadius.circular(25),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.1),
+                              color: theme.shadowColor.withValues(alpha: headerShadowAlpha),
                               blurRadius: 8,
                               offset: const Offset(0, 2),
                             ),
                           ],
                         ),
-                        child: const Text(
+                        child: Text(
                           'Mapa de Estaciones',
                           style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: headerTextColor,
                           ),
                         ),
                       ),
@@ -310,19 +317,29 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
             bottom: _selectedStation != null ? 280 : 100,
             child: Column(
               children: [
-                _buildMapControl(Icons.add, () {
-                  _mapController.move(
-                    _mapController.camera.center,
-                    _mapController.camera.zoom + 1,
-                  );
-                }),
+                _buildMapControl(
+                  Icons.add,
+                  () {
+                    _mapController.move(
+                      _mapController.camera.center,
+                      _mapController.camera.zoom + 1,
+                    );
+                  },
+                  backgroundColor: cardColor,
+                  iconColorParam: iconColor,
+                ),
                 const SizedBox(height: 8),
-                _buildMapControl(Icons.remove, () {
-                  _mapController.move(
-                    _mapController.camera.center,
-                    _mapController.camera.zoom - 1,
-                  );
-                }),
+                _buildMapControl(
+                  Icons.remove,
+                  () {
+                    _mapController.move(
+                      _mapController.camera.center,
+                      _mapController.camera.zoom - 1,
+                    );
+                  },
+                  backgroundColor: cardColor,
+                  iconColorParam: iconColor,
+                ),
               ],
             ),
           ),
@@ -394,23 +411,27 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
     );
   }
 
-  Widget _buildMapControl(IconData icon, VoidCallback onTap) {
+  Widget _buildMapControl(IconData icon, VoidCallback onTap, {Color? backgroundColor, Color? iconColorParam}) {
+    final bg = backgroundColor ?? Colors.white;
+    final ic = iconColorParam ?? Colors.black87;
+    final shadowColor = Theme.of(context).shadowColor.withValues(alpha: 0.1);
+
     return GestureDetector(
       onTap: onTap,
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: bg,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
+              color: shadowColor,
               blurRadius: 8,
               offset: const Offset(0, 2),
             ),
           ],
         ),
-        child: Icon(icon, color: Colors.black87, size: 24),
+        child: Icon(icon, color: ic, size: 24),
       ),
     );
   }

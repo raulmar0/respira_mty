@@ -31,7 +31,9 @@ void main() {
       ),
     );
 
-    await tester.pumpAndSettle();
+    // Avoid pumpAndSettle to prevent network-related timers from delaying tests
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     // Ensure Scaffold has a bottomNavigationBar
     final scaffoldFinder = find.byWidgetPredicate((w) => w is Scaffold && w.bottomNavigationBar != null);
@@ -39,14 +41,16 @@ void main() {
 
     // Tap 'List' tab to show list
     await tester.tap(find.text('List'));
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Station is visible in list
     expect(find.text('MiMunicipio'), findsWidgets);
 
     // Tap station card
     await tester.tap(find.byType(StationCard).first);
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     // Detail header shows municipality
     expect(find.text('MiMunicipio'), findsWidgets);

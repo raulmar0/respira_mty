@@ -32,7 +32,8 @@ void main() {
     await tester.tap(find.text('Clima'));
     await tester.pumpAndSettle();
 
-    expect(find.text('No hay datos de clima disponibles'), findsOneWidget);
+    // The embedded weather section should be visible
+    expect(find.text('Temperatura Actual'), findsOneWidget);
 
     // Tap Contaminantes
     await tester.tap(find.text('Contaminantes'));
