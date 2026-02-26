@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/station.dart';
 import '../data/station_locations.dart';
 import 'package:flutter/foundation.dart';
+import 'notification_service.dart';
 
 class AirQualityService {
   Future<List<Station>> fetchStations() async {
@@ -108,6 +109,10 @@ class AirQualityService {
       }
 
 
+    }
+
+    if (stations.isNotEmpty) {
+      NotificationService().checkAndNotify(stations);
     }
 
     return stations;

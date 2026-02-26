@@ -5,11 +5,14 @@ import 'package:respira_mty/l10n/app_localizations.dart';
 import 'screens/main_shell.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
+import 'services/notification_service.dart';
 import 'theme/light_theme.dart';
 import 'theme/dark_theme.dart';
 import 'zoom_splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await NotificationService().init();
   runApp(
     const ProviderScope(
       child: MyApp(),
