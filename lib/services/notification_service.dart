@@ -1,5 +1,8 @@
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter/foundation.dart';
 import '../models/station.dart';
+
+enum AlertLevel { none, alerta, fase1, fase2 }
 
 class NotificationService {
   static final NotificationService _instance = NotificationService._internal();
@@ -9,26 +12,42 @@ class NotificationService {
   final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   bool _initialized = false;
+  AlertLevel _lastAlertLevel = AlertLevel.none;
 
   Future<void> init() async {
     if (_initialized) return;
 
-    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
-    const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
-      requestAlertPermission: true,
-      requestBadgePermission: true,
-      requestSoundPermission: true,
-    );
-    const InitializationSettings initializationSettings = InitializationSettings(
-      android: initializationSettingsAndroid,
-      iOS: initializationSettingsIOS,
-    );
+    try {
+      const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
+      const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
+        requestAlertPermission: true,
+        requestBadgePermission: true,
+        requestSoundPermission: true,
+      );
+      const InitializationSettings initializationSettings = InitializationSettings(
+        android: initializationSettingsAndroid,
+        iOS: initializationSettingsIOS,
+      );
 
-    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
-    _initialized = true;
+      await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+
+      // Request permissions for Android 13+
+      if (defaultTargetPlatform == TargetPlatform.android) {
+        final AndroidFlutterLocalNotificationsPlugin? androidImplementation =
+            flutterLocalNotificationsPlugin.resolvePlatformSpecificImplementation<
+                AndroidFlutterLocalNotificationsPlugin>();
+        await androidImplementation?.requestNotificationsPermission();
+      }
+
+      _initialized = true;
+    } catch (e) {
+      debugPrint('Failed to initialize NotificationService: $e');
+    }
   }
 
-  Future<void> showEnvironmentalAlert(String title, String body) async {
+  Future<void> showEnvironmentalAlert(int id, String title, String body) async {
+    if (!_initialized) return;
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics = AndroidNotificationDetails(
       'environmental_alerts_channel',
       'Alertas Ambientales',
@@ -37,47 +56,52 @@ class NotificationService {
       priority: Priority.high,
       ticker: 'ticker',
     );
-    const NotificationDetails platformChannelSpecifics = NotificationDetails(android: androidPlatformChannelSpecifics);
+    const DarwinNotificationDetails iOSPlatformChannelSpecifics = DarwinNotificationDetails();
+    
+    const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: iOSPlatformChannelSpecifics,
+    );
     
     await flutterLocalNotificationsPlugin.show(
-      0,
+      id,
       title,
       body,
       platformChannelSpecifics,
     );
   }
 
-  /// Returns the alert title and body for the given pollutant levels, or null
-  /// if the levels do not reach any alert threshold. This method is static so
-  /// that it can be exercised in unit tests without initialising the plugin.
-  static ({String title, String body})? getAlertForLevels(
+  /// Returns the alert title, body, and severity level for the given pollutant levels, 
+  /// or null if the levels do not reach any alert threshold.
+  static ({String title, String body, AlertLevel level})? getAlertForLevels(
       double maxPm10, double maxPm25) {
-    // Verificar Contingencia Fase II
     if (maxPm10 >= 215 || maxPm25 >= 115) {
       return (
         title: '🚨 Contingencia Ambiental Fase II',
         body: 'Niveles críticos en Nuevo León. Evita actividades al aire libre.',
+        level: AlertLevel.fase2,
       );
     }
-    // Verificar Contingencia Fase I
     if (maxPm10 >= 165 || maxPm25 >= 85) {
       return (
         title: '⚠️ Contingencia Ambiental Fase I',
         body: 'Mala calidad del aire detectada. Toma precauciones.',
+        level: AlertLevel.fase1,
       );
     }
-    // Verificar Alerta Ambiental
     if (maxPm10 >= 140 || maxPm25 >= 70) {
       return (
         title: '🔔 Alerta Ambiental',
         body: 'Calidad del aire riesgosa para grupos sensibles.',
+        level: AlertLevel.alerta,
       );
     }
     return null;
   }
 
-  void checkAndNotify(List<Station> stations) {
-    // Buscar la estación con peores niveles
+  Future<void> checkAndNotify(List<Station> stations) async {
+    if (!_initialized) return;
+
     double maxPm10 = 0;
     double maxPm25 = 0;
 
@@ -91,8 +115,17 @@ class NotificationService {
     }
 
     final alert = getAlertForLevels(maxPm10, maxPm25);
+    
     if (alert != null) {
-      showEnvironmentalAlert(alert.title, alert.body);
+      // Only notify if the alert level has escalated or changed to a new severity
+      if (_lastAlertLevel != alert.level) {
+        _lastAlertLevel = alert.level;
+        // Use the title's hashCode as ID to distinguish alerts if necessary
+        await showEnvironmentalAlert(alert.title.hashCode, alert.title, alert.body);
+      }
+    } else {
+      // Reset if air is good
+      _lastAlertLevel = AlertLevel.none;
     }
   }
 }
