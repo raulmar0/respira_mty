@@ -47,45 +47,52 @@ class NotificationService {
     );
   }
 
+  /// Returns the alert title and body for the given pollutant levels, or null
+  /// if the levels do not reach any alert threshold. This method is static so
+  /// that it can be exercised in unit tests without initialising the plugin.
+  static ({String title, String body})? getAlertForLevels(
+      double maxPm10, double maxPm25) {
+    // Verificar Contingencia Fase II
+    if (maxPm10 >= 215 || maxPm25 >= 115) {
+      return (
+        title: '🚨 Contingencia Ambiental Fase II',
+        body: 'Niveles críticos en Nuevo León. Evita actividades al aire libre.',
+      );
+    }
+    // Verificar Contingencia Fase I
+    if (maxPm10 >= 165 || maxPm25 >= 85) {
+      return (
+        title: '⚠️ Contingencia Ambiental Fase I',
+        body: 'Mala calidad del aire detectada. Toma precauciones.',
+      );
+    }
+    // Verificar Alerta Ambiental
+    if (maxPm10 >= 140 || maxPm25 >= 70) {
+      return (
+        title: '🔔 Alerta Ambiental',
+        body: 'Calidad del aire riesgosa para grupos sensibles.',
+      );
+    }
+    return null;
+  }
+
   void checkAndNotify(List<Station> stations) {
     // Buscar la estación con peores niveles
     double maxPm10 = 0;
     double maxPm25 = 0;
-    String worstPm10Station = '';
-    String worstPm25Station = '';
 
     for (var station in stations) {
       if (station.pm10 != null && station.pm10! > maxPm10) {
         maxPm10 = station.pm10!;
-        worstPm10Station = station.name;
       }
       if (station.pm25 != null && station.pm25! > maxPm25) {
         maxPm25 = station.pm25!;
-        worstPm25Station = station.name;
       }
     }
 
-    String? alertTitle;
-    String? alertBody;
-
-    // Verificar Contingencia Fase II
-    if (maxPm10 >= 215 || maxPm25 >= 115) {
-      alertTitle = '🚨 Contingencia Ambiental Fase II';
-      alertBody = 'Niveles críticos en Nuevo León. Evita actividades al aire libre.';
-    } 
-    // Verificar Contingencia Fase I
-    else if (maxPm10 >= 165 || maxPm25 >= 85) {
-      alertTitle = '⚠️ Contingencia Ambiental Fase I';
-      alertBody = 'Mala calidad del aire detectada. Toma precauciones.';
-    } 
-    // Verificar Alerta Ambiental
-    else if (maxPm10 >= 140 || maxPm25 >= 70) {
-      alertTitle = '🔔 Alerta Ambiental';
-      alertBody = 'Calidad del aire riesgosa para grupos sensibles.';
-    }
-
-    if (alertTitle != null && alertBody != null) {
-      showEnvironmentalAlert(alertTitle, alertBody);
+    final alert = getAlertForLevels(maxPm10, maxPm25);
+    if (alert != null) {
+      showEnvironmentalAlert(alert.title, alert.body);
     }
   }
 }
