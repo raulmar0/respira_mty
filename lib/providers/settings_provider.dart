@@ -134,12 +134,31 @@ final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
   return SharedPreferences.getInstance();
 });
 class CriticalAlertsNotifier extends Notifier<bool> {
+  static const String _key = 'critical_alerts_enabled';
+
   @override
-  bool build() => false; // Default: disabled
+  bool build() {
+    _loadSaved();
+    return false; // Default: disabled
+  }
 
-  void setEnabled(bool enabled) => state = enabled;
+  Future<void> _loadSaved() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getBool(_key);
+    if (saved != null) {
+      state = saved;
+    }
+  }
 
-  void toggle() => state = !state;
+  Future<void> setEnabled(bool enabled) async {
+    state = enabled;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_key, enabled);
+  }
+
+  Future<void> toggle() async {
+    await setEnabled(!state);
+  }
 }
 
 final criticalAlertsProvider = NotifierProvider<CriticalAlertsNotifier, bool>(CriticalAlertsNotifier.new);

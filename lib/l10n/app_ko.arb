@@ -173,5 +173,9 @@
   "airQualityBad": "나쁨",
   "airQualityVeryBad": "매우 나쁨",
   "airQualityExtremelyBad": "매우 심각",
-  "airQualityUnknown": "알 수 없음"
+  "airQualityUnknown": "알 수 없음",
+
+  "noNotifications": "알림 없음",
+  "noNotificationsHint": "대기 질 알림이 여기에 표시됩니다.",
+  "older": "이전"
 }

@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import '../models/app_notification.dart';
+import '../providers/notification_provider.dart';
 import '../providers/settings_provider.dart';
+import '../utils/air_quality_scale.dart';
 import 'settings_screen.dart';
 
 
@@ -16,11 +19,17 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
   @override
   bool get wantKeepAlive => true;
 
+  String _selectedFilter = 'Todas';
+
   @override
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
     final isCriticalEnabled = ref.watch(criticalAlertsProvider);
+    final historyAsync = ref.watch(notificationHistoryProvider);
+
+    // Activate foreground alert evaluation
+    ref.watch(foregroundAlertProvider);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -30,7 +39,7 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // 1. Cabecera
+              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -39,31 +48,37 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                     style: theme.textTheme.headlineMedium?.copyWith(fontWeight: FontWeight.bold, fontSize: 28),
                   ),
                   TextButton(
-                    onPressed: () {},
-                    // Mantenemos el color primario para la acción
+                    onPressed: () {
+                      ref.read(notificationHistoryProvider.notifier).markAllAsRead();
+                    },
                     child: Text(AppLocalizations.of(context)!.markAllRead, style: TextStyle(color: theme.colorScheme.primary, fontWeight: FontWeight.w600)),
                   )
                 ],
               ),
               const SizedBox(height: 25),
 
-              // 2. Filtros (Chips) - AHORA CON LOS NUEVOS COLORES
+              // Filter chips
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                // Añadimos un poco de padding para que la sombra no se corte
                 padding: const EdgeInsets.only(bottom: 10, left: 2, right: 2),
                 child: Row(
-                  children: const [
-                    _FilterChip(label: "Todas", isSelected: true),
-                    _FilterChip(label: "Alertas", isSelected: false),
-                    _FilterChip(label: "Sistema", isSelected: false),
-                    _FilterChip(label: "Consejos", isSelected: false),
+                  children: [
+                    _FilterChip(
+                      label: "Todas",
+                      isSelected: _selectedFilter == 'Todas',
+                      onTap: () => setState(() => _selectedFilter = 'Todas'),
+                    ),
+                    _FilterChip(
+                      label: "Alertas",
+                      isSelected: _selectedFilter == 'Alertas',
+                      onTap: () => setState(() => _selectedFilter = 'Alertas'),
+                    ),
                   ],
                 ),
               ),
               const SizedBox(height: 20),
 
-              // 3. Sección HOY
+              // Critical alerts warning banner
               if (!isCriticalEnabled)
                 Container(
                   margin: const EdgeInsets.only(bottom: 12),
@@ -88,57 +103,140 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
                     ],
                   ),
                 ),
-              const Text("HOY", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
-              const SizedBox(height: 10),
 
-              const _NotificationCard(
-                icon: Icons.warning_amber_rounded,
-                iconColor: Colors.redAccent,
-                iconBg: Color(0xFFFDE8E8),
-                title: "Calidad del aire: Mala",
-                time: "10 min",
-                body: "El nivel de PM2.5 ha subido drásticamente en la zona de San Pedro. Se recomienda usar...",
-                showDot: true,
-              ),
-              const _NotificationCard(
-                icon: Icons.water_drop_outlined,
-                iconColor: Colors.blueAccent,
-                iconBg: Color(0xFFE3F2FD),
-                title: "Pronóstico de lluvia",
-                time: "2 h",
-                body: "Se espera lluvia ligera en las próximas horas que podría ayudar a limpiar el aire.",
-                showDot: true,
-              ),
+              // Notification list
+              historyAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Center(child: Text('Error: $e')),
+                data: (notifications) {
+                  if (notifications.isEmpty) {
+                    return _buildEmptyState(theme);
+                  }
 
-              const SizedBox(height: 20),
+                  // Group by date
+                  final now = DateTime.now();
+                  final today = DateTime(now.year, now.month, now.day);
+                  final yesterday = today.subtract(const Duration(days: 1));
 
-              // 4. Sección AYER
-              const Text("AYER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
-              const SizedBox(height: 10),
+                  final todayNotifs = <AppNotification>[];
+                  final yesterdayNotifs = <AppNotification>[];
+                  final olderNotifs = <AppNotification>[];
 
-              const _NotificationCard(
-                icon: Icons.location_on_outlined,
-                iconColor: Colors.grey,
-                iconBg: Color(0xFFEEEEEE),
-                title: "Nueva estación añadida",
-                time: "1 d",
-                body: "Ahora monitoreamos la calidad del aire en la zona de Santa Catarina.",
-                showDot: false,
-              ),
-              const _NotificationCard(
-                icon: Icons.spa_outlined,
-                iconColor: Colors.green,
-                iconBg: Color(0xFFE8F5E9),
-                title: "Recomendación de salud",
-                time: "2 d",
-                body: "Los niveles de polen son altos. Evita actividades al aire libre si eres alérgico.",
-                showDot: false,
+                  for (final n in notifications) {
+                    final date = DateTime(n.createdAt.year, n.createdAt.month, n.createdAt.day);
+                    if (date == today) {
+                      todayNotifs.add(n);
+                    } else if (date == yesterday) {
+                      yesterdayNotifs.add(n);
+                    } else {
+                      olderNotifs.add(n);
+                    }
+                  }
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (todayNotifs.isNotEmpty) ...[
+                        const Text("HOY", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
+                        const SizedBox(height: 10),
+                        ...todayNotifs.map((n) => _buildNotificationCard(n, theme)),
+                        const SizedBox(height: 20),
+                      ],
+                      if (yesterdayNotifs.isNotEmpty) ...[
+                        const Text("AYER", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
+                        const SizedBox(height: 10),
+                        ...yesterdayNotifs.map((n) => _buildNotificationCard(n, theme)),
+                        const SizedBox(height: 20),
+                      ],
+                      if (olderNotifs.isNotEmpty) ...[
+                        const Text("ANTERIORES", style: TextStyle(color: Colors.grey, fontWeight: FontWeight.bold, fontSize: 12)),
+                        const SizedBox(height: 10),
+                        ...olderNotifs.map((n) => _buildNotificationCard(n, theme)),
+                      ],
+                    ],
+                  );
+                },
               ),
             ],
           ),
         ),
       ),
     );
+  }
+
+  Widget _buildEmptyState(ThemeData theme) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 60),
+      child: Center(
+        child: Column(
+          children: [
+            Icon(Icons.notifications_off_outlined, size: 64, color: theme.disabledColor),
+            const SizedBox(height: 16),
+            Text(
+              'Sin notificaciones',
+              style: theme.textTheme.titleMedium?.copyWith(color: theme.disabledColor),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Las alertas de calidad del aire aparecerán aquí.',
+              style: theme.textTheme.bodySmall?.copyWith(color: theme.disabledColor),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNotificationCard(AppNotification notification, ThemeData theme) {
+    final iconData = _iconForCategory(notification.category);
+    final iconColor = AirQualityScale.getColorForCategory(notification.category);
+    final iconBg = AirQualityScale.getBackgroundColorForCategory(notification.category);
+    final statusText = AirQualityScale.getStatusForCategory(notification.category);
+    final timeAgo = _formatTimeAgo(notification.createdAt);
+
+    final valueStr = notification.pollutantName == 'CO'
+        ? notification.pollutantValue.toStringAsFixed(1)
+        : notification.pollutantValue.toStringAsFixed(0);
+
+    return GestureDetector(
+      onTap: () {
+        if (!notification.isRead) {
+          ref.read(notificationHistoryProvider.notifier).markAsRead(notification.id);
+        }
+      },
+      child: _NotificationCard(
+        icon: iconData,
+        iconColor: iconColor,
+        iconBg: iconBg,
+        title: 'Calidad del aire: $statusText',
+        time: timeAgo,
+        body: '${notification.pollutantName} en ${notification.stationName}: $valueStr ${notification.pollutantUnit}',
+        showDot: !notification.isRead,
+      ),
+    );
+  }
+
+  IconData _iconForCategory(AirQualityCategory category) {
+    switch (category) {
+      case AirQualityCategory.extremelyBad:
+        return Icons.dangerous_outlined;
+      case AirQualityCategory.veryBad:
+        return Icons.warning_rounded;
+      case AirQualityCategory.bad:
+        return Icons.warning_amber_rounded;
+      default:
+        return Icons.info_outline;
+    }
+  }
+
+  String _formatTimeAgo(DateTime date) {
+    final diff = DateTime.now().difference(date);
+    if (diff.inMinutes < 1) return 'ahora';
+    if (diff.inMinutes < 60) return '${diff.inMinutes} min';
+    if (diff.inHours < 24) return '${diff.inHours} h';
+    if (diff.inDays < 7) return '${diff.inDays} d';
+    return '${date.day}/${date.month}';
   }
 }
 
@@ -182,7 +280,7 @@ class _NotificationCard extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Icono con punto verde opcional
+          // Icon with optional unread dot
           Stack(
             children: [
               Container(
@@ -211,7 +309,7 @@ class _NotificationCard extends StatelessWidget {
             ],
           ),
           const SizedBox(width: 15),
-          // Textos
+          // Text content
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -219,7 +317,9 @@ class _NotificationCard extends StatelessWidget {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 15)),
+                    Expanded(
+                      child: Text(title, style: theme.textTheme.bodyLarge?.copyWith(fontWeight: FontWeight.bold, fontSize: 15)),
+                    ),
                     Text(time, style: theme.textTheme.bodySmall?.copyWith(color: theme.textTheme.bodySmall?.color)),
                   ],
                 ),
@@ -243,8 +343,9 @@ class _NotificationCard extends StatelessWidget {
 class _FilterChip extends StatelessWidget {
   final String label;
   final bool isSelected;
+  final VoidCallback? onTap;
 
-  const _FilterChip({required this.label, required this.isSelected});
+  const _FilterChip({required this.label, required this.isSelected, this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -253,28 +354,31 @@ class _FilterChip extends StatelessWidget {
     final Color unselectedBgColor = theme.cardTheme.color ?? theme.colorScheme.surface;
     final Color unselectedTextColor = theme.textTheme.bodyMedium?.color ?? Colors.grey;
 
-    return Container(
-      margin: const EdgeInsets.only(right: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-      decoration: BoxDecoration(
-        color: isSelected ? selectedBgColor : unselectedBgColor,
-        borderRadius: BorderRadius.circular(30),
-        boxShadow: isSelected
-            ? [
-                BoxShadow(
-                  color: selectedBgColor.withValues(alpha: 0.24),
-                  blurRadius: 8,
-                  offset: const Offset(0, 4),
-                )
-              ]
-            : null,
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          color: isSelected ? (theme.colorScheme.onPrimary) : unselectedTextColor,
-          fontWeight: FontWeight.w600,
-          fontSize: 14,
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        margin: const EdgeInsets.only(right: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        decoration: BoxDecoration(
+          color: isSelected ? selectedBgColor : unselectedBgColor,
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: selectedBgColor.withValues(alpha: 0.24),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  )
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? (theme.colorScheme.onPrimary) : unselectedTextColor,
+            fontWeight: FontWeight.w600,
+            fontSize: 14,
+          ),
         ),
       ),
     );
