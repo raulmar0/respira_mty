@@ -49,5 +49,9 @@
 	<string>La ubicación se usa para ordenar estaciones por proximidad.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
 	<string>La ubicación se usa para ordenar estaciones por proximidad.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>fetch</string>
+	</array>
 </dict>
 </plist>

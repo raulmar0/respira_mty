@@ -2,14 +2,32 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import 'package:workmanager/workmanager.dart';
 import 'screens/main_shell.dart';
 import 'providers/theme_provider.dart';
 import 'providers/settings_provider.dart';
+import 'services/background_worker.dart';
+import 'services/notification_service.dart';
 import 'theme/light_theme.dart';
 import 'theme/dark_theme.dart';
 import 'zoom_splash_screen.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // Initialize local notifications
+  await NotificationService.instance.init();
+
+  // Initialize workmanager for background air quality checks
+  await Workmanager().initialize(callbackDispatcher);
+  await Workmanager().registerPeriodicTask(
+    airQualityCheckTaskUnique,
+    airQualityCheckTask,
+    frequency: const Duration(minutes: 15),
+    constraints: Constraints(networkType: NetworkType.connected),
+    existingWorkPolicy: ExistingWorkPolicy.keep,
+  );
+
   runApp(
     const ProviderScope(
       child: MyApp(),

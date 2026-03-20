@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/notification_provider.dart';
 import 'stations_map_screen.dart';
 import 'stations_list_screen.dart';
 import 'notifications_screen.dart';
@@ -70,10 +71,27 @@ class _MainShellState extends ConsumerState<MainShell> {
             _navigatorKeys[1].currentState?.popUntil((route) => route.isFirst);
           }
         },
-        items: itemData.map((data) => BottomNavigationBarItem(
-          icon: Padding(padding: EdgeInsets.only(top: 6), child: Icon(data['icon'] as IconData)),
-          label: data['label'] as String,
-        )).toList(),
+        items: itemData.asMap().entries.map((entry) {
+          final index = entry.key;
+          final data = entry.value;
+          Widget iconWidget = Icon(data['icon'] as IconData);
+
+          // Add unread badge to notifications tab (index 2)
+          if (index == 2) {
+            final unreadCount = ref.watch(unreadNotificationCountProvider);
+            if (unreadCount > 0) {
+              iconWidget = Badge(
+                label: Text('$unreadCount', style: const TextStyle(fontSize: 10)),
+                child: iconWidget,
+              );
+            }
+          }
+
+          return BottomNavigationBarItem(
+            icon: Padding(padding: const EdgeInsets.only(top: 6), child: iconWidget),
+            label: data['label'] as String,
+          );
+        }).toList(),
       );
     }),
     );

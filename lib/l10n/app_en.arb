@@ -175,5 +175,9 @@
   "airQualityBad": "Bad",
   "airQualityVeryBad": "Very bad",
   "airQualityExtremelyBad": "Extremely bad",
-  "airQualityUnknown": "Unknown"
+  "airQualityUnknown": "Unknown",
+
+  "noNotifications": "No notifications",
+  "noNotificationsHint": "Air quality alerts will appear here.",
+  "older": "OLDER"
 }

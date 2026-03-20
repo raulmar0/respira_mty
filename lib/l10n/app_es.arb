@@ -175,5 +175,9 @@
   "airQualityBad": "Calidad Mala",
   "airQualityVeryBad": "Calidad Muy Mala",
   "airQualityExtremelyBad": "Calidad Extremadamente Mala",
-  "airQualityUnknown": "Calidad Desconocida"
+  "airQualityUnknown": "Calidad Desconocida",
+
+  "noNotifications": "Sin notificaciones",
+  "noNotificationsHint": "Las alertas de calidad del aire aparecerán aquí.",
+  "older": "ANTERIORES"
 }
