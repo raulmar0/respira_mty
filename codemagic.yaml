@@ -1,0 +1,43 @@
+workflows:
+  ios-testflight:
+    name: iOS TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 60
+    integrations:
+      app_store_connect: Respira Mty ASC
+    triggering:
+      events:
+        - pull_request
+      branch_patterns:
+        - pattern: '*'
+          include: true
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.example.respiraMty
+      flutter: stable
+      xcode: latest
+      cocoapods: default
+    scripts:
+      - name: Get Flutter packages
+        script: flutter pub get
+      - name: Install CocoaPods
+        script: |
+          cd ios
+          pod install
+      - name: Set up code signing
+        script: xcode-project use-profiles
+      - name: Build iOS IPA
+        script: |
+          flutter build ipa \
+            --release \
+            --build-number=$PROJECT_BUILD_NUMBER \
+            --export-options-plist=/Users/builder/export_options.plist
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true
+        expire_build_submitted_for_review: true
