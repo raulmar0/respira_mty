@@ -24,4 +24,30 @@ class AlertRule {
     required this.unit,
     required this.reason,
   });
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AlertRule &&
+          runtimeType == other.runtimeType &&
+          stationId == other.stationId &&
+          stationName == other.stationName &&
+          category == other.category &&
+          previousCategory == other.previousCategory &&
+          dominantPollutant == other.dominantPollutant &&
+          value == other.value &&
+          unit == other.unit &&
+          reason == other.reason;
+
+  @override
+  int get hashCode => Object.hash(
+        stationId,
+        stationName,
+        category,
+        previousCategory,
+        dominantPollutant,
+        value,
+        unit,
+        reason,
+      );
 }

@@ -163,17 +163,27 @@ class AlertEvaluator {
           return [sorted.first];
         }
         // No userLocation — fall back to the single worst-category station.
-        return [_pickWorstCategory(stations)];
+        return _pickWorstCategory(stations);
     }
   }
 
-  Station _pickWorstCategory(List<Station> stations) {
-    final sorted = [...stations]
-      ..sort((a, b) {
-        return b.dominantPollutant.category.index
-            .compareTo(a.dominantPollutant.category.index);
-      });
-    return sorted.first;
+  /// Returns the single station with the worst (highest-index) air-quality
+  /// category, excluding maintenance stations. Maintenance has the highest
+  /// enum index but represents missing data, not severity — including it
+  /// would suppress real alerts (the evaluator skips maintenance stations
+  /// downstream). Returns an empty list if no non-maintenance candidates
+  /// remain.
+  List<Station> _pickWorstCategory(List<Station> stations) {
+    final candidates = stations
+        .where((s) =>
+            s.dominantPollutant.category != AirQualityCategory.maintenance)
+        .toList();
+    if (candidates.isEmpty) return const <Station>[];
+    candidates.sort((a, b) {
+      return b.dominantPollutant.category.index
+          .compareTo(a.dominantPollutant.category.index);
+    });
+    return [candidates.first];
   }
 
   AlertEvent? _latestFireForStation(List<AlertEvent> history, String stationId) {

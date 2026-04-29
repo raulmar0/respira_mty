@@ -350,6 +350,29 @@ void main() {
       expect(out.first.stationId, 's2');
     });
 
+    test('scope=nearest with null userLocation skips maintenance and picks real worst', () {
+      // Regression: maintenance has the highest enum index, so a naive
+      // "highest index wins" pick would select the maintenance station and
+      // suppress alerts. The fallback must skip maintenance candidates.
+      final maint = stationNoData(id: 'maint');
+      final bad = stationPm25(id: 'bad', name: 'Bad', pm25: 100); // veryBad
+      final out = evaluator.evaluate(
+        stations: [maint, bad],
+        prefs: prefsWith(scope: AlertScope.nearest),
+        lastSeenByStation: const {
+          'maint': AirQualityCategory.good,
+          'bad': AirQualityCategory.good,
+        },
+        recentHistory: const [],
+        favorites: const {},
+        now: DateTime.utc(2026, 4, 29, 14),
+        userLocation: null,
+      );
+      expect(out.length, 1);
+      expect(out.first.stationId, 'bad');
+      expect(out.first.category, AirQualityCategory.veryBad);
+    });
+
     test('scope=nearest with all stations beyond radius falls back to closest', () {
       // user at (25.67, -100.31)
       // a: ~10km north, b: ~50km north — neither within 5km radius
@@ -530,6 +553,24 @@ void main() {
       expect(ev.isInQuietHours(qh, DateTime(2026, 4, 29, 7)), false);
       expect(ev.isInQuietHours(qh, DateTime(2026, 4, 29, 12)), false);
       expect(ev.isInQuietHours(qh, DateTime(2026, 4, 29, 22)), true);
+    });
+
+    test('isInQuietHours converts UTC to local before comparing', () {
+      // Regression: ensure .toLocal() is applied. Construct a UTC DateTime
+      // that represents the same instant as a local 23:30 — they must yield
+      // the same answer regardless of CI timezone offset.
+      const qh = QuietHours(
+        startMinute: 22 * 60,
+        endMinute: 7 * 60,
+        enabled: true,
+      );
+      final ev = AlertEvaluator();
+      final localNow = DateTime(2026, 4, 29, 23, 30);
+      final utcEquivalent = localNow.toUtc();
+      // Both should yield the same result because the evaluator calls
+      // .toLocal() — which is only true if the conversion is applied.
+      expect(ev.isInQuietHours(qh, localNow), isTrue);
+      expect(ev.isInQuietHours(qh, utcEquivalent), isTrue);
     });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:respira_mty/utils/air_quality_scale.dart';
 
 /// Scope for which stations are evaluated for alerts.
@@ -44,6 +45,18 @@ class QuietHours {
         endMinute: endMinute ?? this.endMinute,
         enabled: enabled ?? this.enabled,
       );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is QuietHours &&
+          runtimeType == other.runtimeType &&
+          startMinute == other.startMinute &&
+          endMinute == other.endMinute &&
+          enabled == other.enabled;
+
+  @override
+  int get hashCode => Object.hash(startMinute, endMinute, enabled);
 }
 
 /// User-tunable preferences for the contingency alert engine.
@@ -131,4 +144,30 @@ class AlertPreferences {
     cooldownHours: (j['cooldownHours'] as num).toInt(),
     notifyOnImprovement: j['notifyOnImprovement'] as bool,
   );
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AlertPreferences &&
+          runtimeType == other.runtimeType &&
+          enabled == other.enabled &&
+          threshold == other.threshold &&
+          scope == other.scope &&
+          nearestRadiusKm == other.nearestRadiusKm &&
+          quietHours == other.quietHours &&
+          setEquals(mutedPollutants, other.mutedPollutants) &&
+          cooldownHours == other.cooldownHours &&
+          notifyOnImprovement == other.notifyOnImprovement;
+
+  @override
+  int get hashCode => Object.hash(
+        enabled,
+        threshold,
+        scope,
+        nearestRadiusKm,
+        quietHours,
+        Object.hashAllUnordered(mutedPollutants),
+        cooldownHours,
+        notifyOnImprovement,
+      );
 }

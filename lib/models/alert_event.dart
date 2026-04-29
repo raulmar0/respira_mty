@@ -90,7 +90,7 @@ class AlertEvent {
     dominantPollutant: j['dominantPollutant'] as String,
     dominantValue: (j['dominantValue'] as num).toDouble(),
     unit: j['unit'] as String,
-    firedAt: DateTime.parse(j['firedAt'] as String),
+    firedAt: DateTime.parse(j['firedAt'] as String).toUtc(),
     localeAtFire: j['localeAtFire'] as String,
     titleSnapshot: j['titleSnapshot'] as String,
     bodySnapshot: j['bodySnapshot'] as String,
@@ -110,4 +110,40 @@ class AlertEvent {
         .join();
     return hex;
   }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is AlertEvent &&
+          runtimeType == other.runtimeType &&
+          id == other.id &&
+          stationId == other.stationId &&
+          stationName == other.stationName &&
+          category == other.category &&
+          dominantPollutant == other.dominantPollutant &&
+          dominantValue == other.dominantValue &&
+          unit == other.unit &&
+          firedAt == other.firedAt &&
+          localeAtFire == other.localeAtFire &&
+          titleSnapshot == other.titleSnapshot &&
+          bodySnapshot == other.bodySnapshot &&
+          read == other.read &&
+          reason == other.reason;
+
+  @override
+  int get hashCode => Object.hash(
+        id,
+        stationId,
+        stationName,
+        category,
+        dominantPollutant,
+        dominantValue,
+        unit,
+        firedAt,
+        localeAtFire,
+        titleSnapshot,
+        bodySnapshot,
+        read,
+        reason,
+      );
 }
