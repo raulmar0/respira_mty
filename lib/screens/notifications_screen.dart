@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
-import '../providers/settings_provider.dart';
+import '../providers/alert_preferences_provider.dart';
 import 'settings_screen.dart';
 
 
@@ -20,7 +20,8 @@ class _NotificationsScreenState extends ConsumerState<NotificationsScreen> with 
   Widget build(BuildContext context) {
     super.build(context);
     final theme = Theme.of(context);
-    final isCriticalEnabled = ref.watch(criticalAlertsProvider);
+    final isCriticalEnabled =
+        ref.watch(alertPreferencesProvider).value?.enabled ?? false;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../providers/alert_preferences_provider.dart';
 import '../providers/settings_provider.dart';
 import '../widgets/language_selection_sheet.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
@@ -11,7 +12,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
     final themeModeAsync = ref.watch(themeModeProvider);
-    final isCriticalEnabled = ref.watch(criticalAlertsProvider);
+    final isCriticalEnabled =
+        ref.watch(alertPreferencesProvider).value?.enabled ?? false;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -53,7 +55,9 @@ class SettingsScreen extends ConsumerWidget {
                       activeThumbColor: Colors.white,
                       activeTrackColor: const Color(0xFF5CE57E),
                       onChanged: (v) {
-                        ref.read(criticalAlertsProvider.notifier).setEnabled(v);
+                        ref
+                            .read(alertPreferencesProvider.notifier)
+                            .setEnabled(v);
                         final messenger = ScaffoldMessenger.of(context);
                         messenger.showSnackBar(
                           SnackBar(content: Text(v ? AppLocalizations.of(context)!.alertsEnabled : AppLocalizations.of(context)!.alertsDisabled)),
