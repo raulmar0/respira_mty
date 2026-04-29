@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/alert_preferences.dart';
 import '../providers/alert_preferences_provider.dart';
 import '../providers/settings_provider.dart';
+import '../utils/air_quality_scale.dart';
 import '../widgets/language_selection_sheet.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import 'alert_preferences_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -12,8 +15,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
     final themeModeAsync = ref.watch(themeModeProvider);
-    final isCriticalEnabled =
-        ref.watch(alertPreferencesProvider).value?.enabled ?? false;
+    final prefs = ref.watch(alertPreferencesProvider).value;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -50,19 +52,12 @@ class SettingsScreen extends ConsumerWidget {
                     iconBg: const Color(0xFFFDE8E8),
                     title: AppLocalizations.of(context)!.criticalAlertsTitle,
                     subtitle: AppLocalizations.of(context)!.criticalAlertsSubtitle,
-                    trailing: Switch(
-                      value: isCriticalEnabled,
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: const Color(0xFF5CE57E),
-                      onChanged: (v) {
-                        ref
-                            .read(alertPreferencesProvider.notifier)
-                            .setEnabled(v);
-                        final messenger = ScaffoldMessenger.of(context);
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(v ? AppLocalizations.of(context)!.alertsEnabled : AppLocalizations.of(context)!.alertsDisabled)),
-                        );
-                      },
+                    trailingText: _alertSummary(context, prefs),
+                    showArrow: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AlertPreferencesScreen(),
+                      ),
                     ),
                   ),
                 ],
@@ -164,6 +159,27 @@ class SettingsScreen extends ConsumerWidget {
         error: (error, stack) => Center(child: Text(AppLocalizations.of(context)!.errorLoadingTheme(error))),
       ),
     );
+  }
+
+  /// Builds a one-line summary of the current alert preferences for the
+  /// trailing text of the "Alertas Críticas" tile. Returns the localized
+  /// "Disabled" string when alerts are off.
+  String _alertSummary(BuildContext context, AlertPreferences? prefs) {
+    final loc = AppLocalizations.of(context)!;
+    if (prefs == null || !prefs.enabled) return loc.alertPrefsSummaryDisabled;
+    final threshold = switch (prefs.threshold) {
+      AirQualityCategory.acceptable => loc.airQualityAcceptable,
+      AirQualityCategory.bad => loc.airQualityBad,
+      AirQualityCategory.veryBad => loc.airQualityVeryBad,
+      AirQualityCategory.extremelyBad => loc.airQualityExtremelyBad,
+      _ => loc.airQualityVeryBad,
+    };
+    final scope = switch (prefs.scope) {
+      AlertScope.all => loc.alertScopeAllShort,
+      AlertScope.favorites => loc.alertScopeFavoritesShort,
+      AlertScope.nearest => loc.alertScopeNearestShort,
+    };
+    return loc.alertPrefsSummaryEnabled(threshold, scope);
   }
 
   PopupMenuItem<ThemeModeOption> _buildMenuItem(BuildContext context, ThemeModeOption option, ThemeData theme, ThemeModeOption current) {

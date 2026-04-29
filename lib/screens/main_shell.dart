@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import '../providers/alert_engine_provider.dart';
+import '../providers/alert_history_provider.dart';
 import '../providers/navigation_provider.dart';
 import 'stations_map_screen.dart';
 import 'stations_list_screen.dart';
@@ -14,8 +16,33 @@ class MainShell extends ConsumerStatefulWidget {
   ConsumerState<MainShell> createState() => _MainShellState();
 }
 
-class _MainShellState extends ConsumerState<MainShell> {
+class _MainShellState extends ConsumerState<MainShell>
+    with WidgetsBindingObserver {
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(4, (_) => GlobalKey<NavigatorState>());
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    // Bootstrap the foreground alert engine listener. The provider keeps the
+    // engine alive for the lifetime of the ProviderContainer.
+    ref.read(alertEngineProvider);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // When the app returns to the foreground, refresh the alert history so
+    // the UI reflects any events written by the background isolate.
+    if (state == AppLifecycleState.resumed) {
+      ref.read(alertHistoryProvider.notifier).refresh();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
