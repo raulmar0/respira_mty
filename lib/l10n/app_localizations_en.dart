@@ -480,13 +480,167 @@ class AppLocalizationsEn extends AppLocalizations {
   String get airQualityUnknown => 'Unknown';
 
   @override
-  String get shareSuccess => 'Shared';
+  String get alertPrefsTitle => 'Alert Preferences';
 
   @override
-  String get shareError => 'Error sharing';
+  String get alertPrefsEnableTitle => 'Enable alerts';
 
   @override
-  String shareText(Object name) {
-    return 'Sharing station $name';
+  String get alertPrefsEnableSubtitle => 'Get notified when air quality crosses your threshold';
+
+  @override
+  String get alertPrefsThresholdHeader => 'SEVERITY THRESHOLD';
+
+  @override
+  String get alertPrefsThresholdAcceptable => 'Acceptable or worse';
+
+  @override
+  String get alertPrefsThresholdBad => 'Bad or worse';
+
+  @override
+  String get alertPrefsThresholdVeryBad => 'Very Bad or worse (recommended)';
+
+  @override
+  String get alertPrefsThresholdExtreme => 'Extremely Bad';
+
+  @override
+  String get alertPrefsScopeHeader => 'SCOPE';
+
+  @override
+  String get alertPrefsScopeAll => 'All stations';
+
+  @override
+  String get alertPrefsScopeFavorites => 'Favorites only';
+
+  @override
+  String get alertPrefsScopeNearest => 'Nearest station';
+
+  @override
+  String alertPrefsNearestRadiusLabel(int km) {
+    return 'Radius: $km km';
   }
+
+  @override
+  String get alertPrefsQuietHoursHeader => 'QUIET HOURS';
+
+  @override
+  String get alertPrefsQuietStart => 'Start';
+
+  @override
+  String get alertPrefsQuietEnd => 'End';
+
+  @override
+  String get alertPrefsPollutantsHeader => 'POLLUTANTS';
+
+  @override
+  String get alertPrefsCooldownHeader => 'ADVANCED';
+
+  @override
+  String alertPrefsCooldownLabel(int hours) {
+    return 'Cooldown: $hours h';
+  }
+
+  @override
+  String get alertPrefsTestButton => 'Send test alert';
+
+  @override
+  String alertPrefsSummaryEnabled(String threshold, String scope) {
+    return 'Enabled · $threshold · $scope';
+  }
+
+  @override
+  String get alertPrefsSummaryDisabled => 'Disabled';
+
+  @override
+  String get alertPrefsIosLatencyNotice => 'iOS may delay delivery when the device is idle.';
+
+  @override
+  String get alertPrefsImprovementTitle => 'Notify improvements';
+
+  @override
+  String get alertPrefsImprovementSubtitle => 'Also alert me when the air recovers to good';
+
+  @override
+  String get alertScopeAllShort => 'All';
+
+  @override
+  String get alertScopeFavoritesShort => 'Favorites';
+
+  @override
+  String get alertScopeNearestShort => 'Nearby';
+
+  @override
+  String get permissionRationaleTitle => 'Enable notifications';
+
+  @override
+  String get permissionRationaleBody => 'We\'ll alert you when air quality crosses your threshold, even if the app is closed.';
+
+  @override
+  String get permissionRationaleEnable => 'Enable';
+
+  @override
+  String get permissionRationaleLater => 'Not now';
+
+  @override
+  String get permissionDeniedOpenSettings => 'Open Settings';
+
+  @override
+  String get permissionDeniedBanner => 'Notifications are blocked. Enable them in Settings to receive alerts.';
+
+  @override
+  String alertEventTitleCrossing(String category) {
+    return 'Air quality: $category';
+  }
+
+  @override
+  String alertEventTitleWorsening(String category) {
+    return 'Worsened: now $category';
+  }
+
+  @override
+  String alertEventTitleImprovement(String station) {
+    return 'Better air at $station';
+  }
+
+  @override
+  String alertEventBodyCrossing(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant $value $unit. Limit outdoor activities.';
+  }
+
+  @override
+  String alertEventBodyWorsening(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant rose to $value $unit.';
+  }
+
+  @override
+  String alertEventBodyImprovement(String station) {
+    return '$station returned to good quality.';
+  }
+
+  @override
+  String get notifEmptyTitle => 'No alerts yet';
+
+  @override
+  String get notifEmptyBody => 'Alerts will appear here when air crosses your threshold.';
+
+  @override
+  String get notifSectionEarlier => 'EARLIER';
+
+  @override
+  String get alertChannelBadName => 'Bad air quality';
+
+  @override
+  String get alertChannelBadDesc => 'Alerts when air reaches Bad level';
+
+  @override
+  String get alertChannelVeryBadName => 'Very bad air quality';
+
+  @override
+  String get alertChannelVeryBadDesc => 'Alerts when air reaches Very Bad level (contingency)';
+
+  @override
+  String get alertChannelExtremeName => 'Extreme air quality';
+
+  @override
+  String get alertChannelExtremeDesc => 'Alerts when air reaches Extremely Bad level';
 }
