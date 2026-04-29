@@ -133,13 +133,10 @@ final themeModeProvider = AsyncNotifierProvider<ThemeModeNotifier, ThemeModeOpti
 final sharedPreferencesProvider = FutureProvider<SharedPreferences>((ref) {
   return SharedPreferences.getInstance();
 });
-class CriticalAlertsNotifier extends Notifier<bool> {
-  @override
-  bool build() => false; // Default: disabled
 
-  void setEnabled(bool enabled) => state = enabled;
-
-  void toggle() => state = !state;
-}
-
-final criticalAlertsProvider = NotifierProvider<CriticalAlertsNotifier, bool>(CriticalAlertsNotifier.new);
+// NOTE: The legacy `CriticalAlertsNotifier` / `criticalAlertsProvider` was
+// replaced by `alertPreferencesProvider` (see
+// lib/providers/alert_preferences_provider.dart) as part of the contingency
+// alert engine. The new provider persists to shared_preferences and exposes
+// the full set of preferences (threshold, scope, quiet hours, etc.) instead
+// of a single boolean toggle.

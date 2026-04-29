@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/alert_preferences.dart';
+import '../providers/alert_preferences_provider.dart';
 import '../providers/settings_provider.dart';
+import '../utils/air_quality_scale.dart';
 import '../widgets/language_selection_sheet.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import 'alert_preferences_screen.dart';
 
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
@@ -11,7 +15,7 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final currentLang = ref.watch(languageProvider);
     final themeModeAsync = ref.watch(themeModeProvider);
-    final isCriticalEnabled = ref.watch(criticalAlertsProvider);
+    final prefs = ref.watch(alertPreferencesProvider).value;
     final theme = Theme.of(context);
 
     return Scaffold(
@@ -19,10 +23,17 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: theme.iconTheme.color),
-          onPressed: () {},
-        ),
+        // Show back button only when this screen was pushed onto the stack
+        // (e.g. opened from the Notifications banner). When reached as a tab
+        // from MainShell there is nothing to pop, so hide the button instead
+        // of showing one that does nothing.
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: theme.iconTheme.color),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         title: Text(
           AppLocalizations.of(context)!.settingsTitle,
           style: theme.appBarTheme.titleTextStyle,
@@ -48,17 +59,12 @@ class SettingsScreen extends ConsumerWidget {
                     iconBg: const Color(0xFFFDE8E8),
                     title: AppLocalizations.of(context)!.criticalAlertsTitle,
                     subtitle: AppLocalizations.of(context)!.criticalAlertsSubtitle,
-                    trailing: Switch(
-                      value: isCriticalEnabled,
-                      activeThumbColor: Colors.white,
-                      activeTrackColor: const Color(0xFF5CE57E),
-                      onChanged: (v) {
-                        ref.read(criticalAlertsProvider.notifier).setEnabled(v);
-                        final messenger = ScaffoldMessenger.of(context);
-                        messenger.showSnackBar(
-                          SnackBar(content: Text(v ? AppLocalizations.of(context)!.alertsEnabled : AppLocalizations.of(context)!.alertsDisabled)),
-                        );
-                      },
+                    trailingText: _alertSummary(context, prefs),
+                    showArrow: true,
+                    onTap: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const AlertPreferencesScreen(),
+                      ),
                     ),
                   ),
                 ],
@@ -123,11 +129,13 @@ class SettingsScreen extends ConsumerWidget {
                   _SettingsTile(
                     title: AppLocalizations.of(context)!.privacyPolicy,
                     showArrow: true,
+                    onTap: () => _showPrivacyPolicyDialog(context),
                   ),
                   _CustomDivider(),
                   _SettingsTile(
                     title: AppLocalizations.of(context)!.aboutApp,
                     showArrow: true,
+                    onTap: () => _showAboutAppDialog(context),
                   ),
                 ],
               ),
@@ -158,6 +166,62 @@ class SettingsScreen extends ConsumerWidget {
         ),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stack) => Center(child: Text(AppLocalizations.of(context)!.errorLoadingTheme(error))),
+      ),
+    );
+  }
+
+  /// Builds a one-line summary of the current alert preferences for the
+  /// trailing text of the "Alertas Críticas" tile. Returns the localized
+  /// "Disabled" string when alerts are off.
+  String _alertSummary(BuildContext context, AlertPreferences? prefs) {
+    final loc = AppLocalizations.of(context)!;
+    if (prefs == null || !prefs.enabled) return loc.alertPrefsSummaryDisabled;
+    final threshold = switch (prefs.threshold) {
+      AirQualityCategory.acceptable => loc.airQualityAcceptable,
+      AirQualityCategory.bad => loc.airQualityBad,
+      AirQualityCategory.veryBad => loc.airQualityVeryBad,
+      AirQualityCategory.extremelyBad => loc.airQualityExtremelyBad,
+      _ => loc.airQualityVeryBad,
+    };
+    final scope = switch (prefs.scope) {
+      AlertScope.all => loc.alertScopeAllShort,
+      AlertScope.favorites => loc.alertScopeFavoritesShort,
+      AlertScope.nearest => loc.alertScopeNearestShort,
+    };
+    return loc.alertPrefsSummaryEnabled(threshold, scope);
+  }
+
+  /// Shows the built-in Material AboutDialog. Pulls `applicationName`,
+  /// `applicationVersion` and `applicationLegalese` from existing l10n keys
+  /// so it stays consistent across the four supported locales without adding
+  /// new strings.
+  void _showAboutAppDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    showAboutDialog(
+      context: context,
+      applicationName: loc.appTitle,
+      applicationVersion: loc.versionLabel,
+      applicationLegalese: loc.dataProviderCredit,
+    );
+  }
+
+  /// Shows a minimal placeholder Privacy Policy dialog. The full policy is a
+  /// product decision (see audit) — this at least stops the row from being a
+  /// dead button and surfaces what data the app handles right now (only
+  /// public SIMA data, no personal info).
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(loc.privacyPolicy),
+        content: Text(loc.dataProviderCredit),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
       ),
     );
   }

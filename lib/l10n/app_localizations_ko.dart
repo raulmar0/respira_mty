@@ -480,13 +480,167 @@ class AppLocalizationsKo extends AppLocalizations {
   String get airQualityUnknown => '알 수 없음';
 
   @override
-  String get shareSuccess => '공유됨';
+  String get alertPrefsTitle => '알림 설정';
 
   @override
-  String get shareError => '공유 중 오류';
+  String get alertPrefsEnableTitle => '알림 활성화';
 
   @override
-  String shareText(Object name) {
-    return '스테이션 공유: $name';
+  String get alertPrefsEnableSubtitle => '공기질이 임계값을 초과하면 알려드립니다';
+
+  @override
+  String get alertPrefsThresholdHeader => '심각도 임계값';
+
+  @override
+  String get alertPrefsThresholdAcceptable => '수용 가능 이상';
+
+  @override
+  String get alertPrefsThresholdBad => '나쁨 이상';
+
+  @override
+  String get alertPrefsThresholdVeryBad => '매우 나쁨 이상 (권장)';
+
+  @override
+  String get alertPrefsThresholdExtreme => '극도로 나쁨';
+
+  @override
+  String get alertPrefsScopeHeader => '범위';
+
+  @override
+  String get alertPrefsScopeAll => '모든 측정소';
+
+  @override
+  String get alertPrefsScopeFavorites => '즐겨찾기만';
+
+  @override
+  String get alertPrefsScopeNearest => '가장 가까운 측정소';
+
+  @override
+  String alertPrefsNearestRadiusLabel(int km) {
+    return '반경: $km km';
   }
+
+  @override
+  String get alertPrefsQuietHoursHeader => '방해 금지 시간';
+
+  @override
+  String get alertPrefsQuietStart => '시작';
+
+  @override
+  String get alertPrefsQuietEnd => '종료';
+
+  @override
+  String get alertPrefsPollutantsHeader => '오염 물질';
+
+  @override
+  String get alertPrefsCooldownHeader => '고급';
+
+  @override
+  String alertPrefsCooldownLabel(int hours) {
+    return '쿨다운: $hours시간';
+  }
+
+  @override
+  String get alertPrefsTestButton => '테스트 알림 보내기';
+
+  @override
+  String alertPrefsSummaryEnabled(String threshold, String scope) {
+    return '활성 · $threshold · $scope';
+  }
+
+  @override
+  String get alertPrefsSummaryDisabled => '비활성';
+
+  @override
+  String get alertPrefsIosLatencyNotice => 'iOS는 기기가 유휴 상태일 때 전송을 지연할 수 있습니다.';
+
+  @override
+  String get alertPrefsImprovementTitle => '개선 알림';
+
+  @override
+  String get alertPrefsImprovementSubtitle => '공기가 좋아질 때도 알림 받기';
+
+  @override
+  String get alertScopeAllShort => '전체';
+
+  @override
+  String get alertScopeFavoritesShort => '즐겨찾기';
+
+  @override
+  String get alertScopeNearestShort => '근처';
+
+  @override
+  String get permissionRationaleTitle => '알림 활성화';
+
+  @override
+  String get permissionRationaleBody => '공기질이 임계값을 초과하면 앱이 닫혀 있어도 알려드립니다.';
+
+  @override
+  String get permissionRationaleEnable => '활성화';
+
+  @override
+  String get permissionRationaleLater => '나중에';
+
+  @override
+  String get permissionDeniedOpenSettings => '설정 열기';
+
+  @override
+  String get permissionDeniedBanner => '알림이 차단되었습니다. 알림을 받으려면 설정에서 활성화하세요.';
+
+  @override
+  String alertEventTitleCrossing(String category) {
+    return '공기질: $category';
+  }
+
+  @override
+  String alertEventTitleWorsening(String category) {
+    return '악화: 현재 $category';
+  }
+
+  @override
+  String alertEventTitleImprovement(String station) {
+    return '$station의 공기가 좋아짐';
+  }
+
+  @override
+  String alertEventBodyCrossing(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant $value $unit. 야외 활동을 제한하세요.';
+  }
+
+  @override
+  String alertEventBodyWorsening(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant이(가) $value $unit(으)로 상승했습니다.';
+  }
+
+  @override
+  String alertEventBodyImprovement(String station) {
+    return '$station이(가) 좋은 공기질로 돌아왔습니다.';
+  }
+
+  @override
+  String get notifEmptyTitle => '아직 알림 없음';
+
+  @override
+  String get notifEmptyBody => '공기가 임계값을 초과하면 여기에 알림이 표시됩니다.';
+
+  @override
+  String get notifSectionEarlier => '이전';
+
+  @override
+  String get alertChannelBadName => '나쁜 공기질';
+
+  @override
+  String get alertChannelBadDesc => '공기가 나쁨 수준에 도달하면 알림';
+
+  @override
+  String get alertChannelVeryBadName => '매우 나쁜 공기질';
+
+  @override
+  String get alertChannelVeryBadDesc => '공기가 매우 나쁨 수준에 도달하면 알림 (긴급 사태)';
+
+  @override
+  String get alertChannelExtremeName => '극도의 공기질';
+
+  @override
+  String get alertChannelExtremeDesc => '공기가 극도로 나쁨 수준에 도달하면 알림';
 }

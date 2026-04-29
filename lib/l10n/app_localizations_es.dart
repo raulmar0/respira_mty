@@ -480,13 +480,167 @@ class AppLocalizationsEs extends AppLocalizations {
   String get airQualityUnknown => 'Calidad Desconocida';
 
   @override
-  String get shareSuccess => 'Compartido';
+  String get alertPrefsTitle => 'Preferencias de Alertas';
 
   @override
-  String get shareError => 'Error al compartir';
+  String get alertPrefsEnableTitle => 'Activar alertas';
 
   @override
-  String shareText(Object name) {
-    return 'Compartiendo estación $name';
+  String get alertPrefsEnableSubtitle => 'Recibe notificaciones cuando el aire cruce tu umbral';
+
+  @override
+  String get alertPrefsThresholdHeader => 'UMBRAL DE SEVERIDAD';
+
+  @override
+  String get alertPrefsThresholdAcceptable => 'Aceptable o peor';
+
+  @override
+  String get alertPrefsThresholdBad => 'Mala o peor';
+
+  @override
+  String get alertPrefsThresholdVeryBad => 'Muy Mala o peor (recomendado)';
+
+  @override
+  String get alertPrefsThresholdExtreme => 'Extremadamente Mala';
+
+  @override
+  String get alertPrefsScopeHeader => 'ÁMBITO';
+
+  @override
+  String get alertPrefsScopeAll => 'Todas las estaciones';
+
+  @override
+  String get alertPrefsScopeFavorites => 'Solo favoritos';
+
+  @override
+  String get alertPrefsScopeNearest => 'Estación más cercana';
+
+  @override
+  String alertPrefsNearestRadiusLabel(int km) {
+    return 'Radio: $km km';
   }
+
+  @override
+  String get alertPrefsQuietHoursHeader => 'HORARIO SILENCIOSO';
+
+  @override
+  String get alertPrefsQuietStart => 'Inicio';
+
+  @override
+  String get alertPrefsQuietEnd => 'Fin';
+
+  @override
+  String get alertPrefsPollutantsHeader => 'CONTAMINANTES';
+
+  @override
+  String get alertPrefsCooldownHeader => 'AVANZADO';
+
+  @override
+  String alertPrefsCooldownLabel(int hours) {
+    return 'Cooldown: $hours h';
+  }
+
+  @override
+  String get alertPrefsTestButton => 'Disparar alerta de prueba';
+
+  @override
+  String alertPrefsSummaryEnabled(String threshold, String scope) {
+    return 'Activadas · $threshold · $scope';
+  }
+
+  @override
+  String get alertPrefsSummaryDisabled => 'Desactivadas';
+
+  @override
+  String get alertPrefsIosLatencyNotice => 'iOS puede demorar la entrega cuando el dispositivo está inactivo.';
+
+  @override
+  String get alertPrefsImprovementTitle => 'Notificar mejoras';
+
+  @override
+  String get alertPrefsImprovementSubtitle => 'Avísame también cuando el aire vuelva a estar bien';
+
+  @override
+  String get alertScopeAllShort => 'Todas';
+
+  @override
+  String get alertScopeFavoritesShort => 'Favoritos';
+
+  @override
+  String get alertScopeNearestShort => 'Cercanas';
+
+  @override
+  String get permissionRationaleTitle => 'Activa las notificaciones';
+
+  @override
+  String get permissionRationaleBody => 'Te avisaremos cuando la calidad del aire cruce el umbral que elegiste, incluso si la app está cerrada.';
+
+  @override
+  String get permissionRationaleEnable => 'Activar';
+
+  @override
+  String get permissionRationaleLater => 'Ahora no';
+
+  @override
+  String get permissionDeniedOpenSettings => 'Abrir Ajustes';
+
+  @override
+  String get permissionDeniedBanner => 'Las notificaciones están bloqueadas. Habilítalas en Ajustes para recibir alertas.';
+
+  @override
+  String alertEventTitleCrossing(String category) {
+    return 'Calidad del aire: $category';
+  }
+
+  @override
+  String alertEventTitleWorsening(String category) {
+    return 'Empeoró: ahora $category';
+  }
+
+  @override
+  String alertEventTitleImprovement(String station) {
+    return 'Aire mejor en $station';
+  }
+
+  @override
+  String alertEventBodyCrossing(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant $value $unit. Limita actividades al aire libre.';
+  }
+
+  @override
+  String alertEventBodyWorsening(String station, String pollutant, String value, String unit) {
+    return '$station: $pollutant subió a $value $unit.';
+  }
+
+  @override
+  String alertEventBodyImprovement(String station) {
+    return '$station regresó a calidad buena.';
+  }
+
+  @override
+  String get notifEmptyTitle => 'Aún no hay alertas';
+
+  @override
+  String get notifEmptyBody => 'Las alertas aparecerán aquí cuando el aire cruce tu umbral.';
+
+  @override
+  String get notifSectionEarlier => 'ANTERIORES';
+
+  @override
+  String get alertChannelBadName => 'Calidad del aire mala';
+
+  @override
+  String get alertChannelBadDesc => 'Notificaciones cuando el aire alcanza nivel Malo';
+
+  @override
+  String get alertChannelVeryBadName => 'Calidad del aire muy mala';
+
+  @override
+  String get alertChannelVeryBadDesc => 'Notificaciones cuando el aire alcanza nivel Muy Malo (contingencia)';
+
+  @override
+  String get alertChannelExtremeName => 'Calidad del aire extrema';
+
+  @override
+  String get alertChannelExtremeDesc => 'Notificaciones cuando el aire alcanza nivel Extremadamente Malo';
 }

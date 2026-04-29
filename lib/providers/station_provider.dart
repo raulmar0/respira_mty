@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../models/station.dart';
 import '../services/air_quality_service.dart';
@@ -8,9 +9,32 @@ import 'location_provider.dart';
 
 enum StationsListFilter { all, favorites, nearest }
 
+/// Persists the user's favorite station ids across app restarts using
+/// `SharedPreferences`. Mirrors the load-on-build / save-on-change pattern
+/// used by `LanguageNotifier` so the UI stays responsive — the empty default
+/// is returned synchronously and the saved value replaces it once the prefs
+/// finish loading.
 class FavoriteStationsNotifier extends Notifier<Set<String>> {
+  static const String _key = 'favorite_stations';
+
   @override
-  Set<String> build() => <String>{};
+  Set<String> build() {
+    _loadSaved();
+    return <String>{};
+  }
+
+  Future<void> _loadSaved() async {
+    final prefs = await SharedPreferences.getInstance();
+    final saved = prefs.getStringList(_key);
+    if (saved != null && saved.isNotEmpty) {
+      state = saved.toSet();
+    }
+  }
+
+  Future<void> _persist(Set<String> value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(_key, value.toList());
+  }
 
   void toggle(String stationId) {
     final updated = <String>{...state};
@@ -18,6 +42,10 @@ class FavoriteStationsNotifier extends Notifier<Set<String>> {
       updated.add(stationId);
     }
     state = updated;
+    // Persist asynchronously; don't block the UI. Errors are swallowed so a
+    // transient prefs failure doesn't crash the app — worst case the favorite
+    // is lost on next launch.
+    _persist(updated);
   }
 }
 

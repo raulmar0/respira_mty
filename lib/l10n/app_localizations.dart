@@ -1017,23 +1017,299 @@ abstract class AppLocalizations {
   /// **'Unknown'**
   String get airQualityUnknown;
 
-  /// No description provided for @shareSuccess.
+  /// No description provided for @alertPrefsTitle.
   ///
   /// In en, this message translates to:
-  /// **'Shared'**
-  String get shareSuccess;
+  /// **'Alert Preferences'**
+  String get alertPrefsTitle;
 
-  /// No description provided for @shareError.
+  /// No description provided for @alertPrefsEnableTitle.
   ///
   /// In en, this message translates to:
-  /// **'Error sharing'**
-  String get shareError;
+  /// **'Enable alerts'**
+  String get alertPrefsEnableTitle;
 
-  /// Text used when sharing a station
+  /// No description provided for @alertPrefsEnableSubtitle.
   ///
   /// In en, this message translates to:
-  /// **'Sharing station {name}'**
-  String shareText(Object name);
+  /// **'Get notified when air quality crosses your threshold'**
+  String get alertPrefsEnableSubtitle;
+
+  /// No description provided for @alertPrefsThresholdHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'SEVERITY THRESHOLD'**
+  String get alertPrefsThresholdHeader;
+
+  /// No description provided for @alertPrefsThresholdAcceptable.
+  ///
+  /// In en, this message translates to:
+  /// **'Acceptable or worse'**
+  String get alertPrefsThresholdAcceptable;
+
+  /// No description provided for @alertPrefsThresholdBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad or worse'**
+  String get alertPrefsThresholdBad;
+
+  /// No description provided for @alertPrefsThresholdVeryBad.
+  ///
+  /// In en, this message translates to:
+  /// **'Very Bad or worse (recommended)'**
+  String get alertPrefsThresholdVeryBad;
+
+  /// No description provided for @alertPrefsThresholdExtreme.
+  ///
+  /// In en, this message translates to:
+  /// **'Extremely Bad'**
+  String get alertPrefsThresholdExtreme;
+
+  /// No description provided for @alertPrefsScopeHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'SCOPE'**
+  String get alertPrefsScopeHeader;
+
+  /// No description provided for @alertPrefsScopeAll.
+  ///
+  /// In en, this message translates to:
+  /// **'All stations'**
+  String get alertPrefsScopeAll;
+
+  /// No description provided for @alertPrefsScopeFavorites.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites only'**
+  String get alertPrefsScopeFavorites;
+
+  /// No description provided for @alertPrefsScopeNearest.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearest station'**
+  String get alertPrefsScopeNearest;
+
+  /// No description provided for @alertPrefsNearestRadiusLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Radius: {km} km'**
+  String alertPrefsNearestRadiusLabel(int km);
+
+  /// No description provided for @alertPrefsQuietHoursHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'QUIET HOURS'**
+  String get alertPrefsQuietHoursHeader;
+
+  /// No description provided for @alertPrefsQuietStart.
+  ///
+  /// In en, this message translates to:
+  /// **'Start'**
+  String get alertPrefsQuietStart;
+
+  /// No description provided for @alertPrefsQuietEnd.
+  ///
+  /// In en, this message translates to:
+  /// **'End'**
+  String get alertPrefsQuietEnd;
+
+  /// No description provided for @alertPrefsPollutantsHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'POLLUTANTS'**
+  String get alertPrefsPollutantsHeader;
+
+  /// No description provided for @alertPrefsCooldownHeader.
+  ///
+  /// In en, this message translates to:
+  /// **'ADVANCED'**
+  String get alertPrefsCooldownHeader;
+
+  /// No description provided for @alertPrefsCooldownLabel.
+  ///
+  /// In en, this message translates to:
+  /// **'Cooldown: {hours} h'**
+  String alertPrefsCooldownLabel(int hours);
+
+  /// No description provided for @alertPrefsTestButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Send test alert'**
+  String get alertPrefsTestButton;
+
+  /// No description provided for @alertPrefsSummaryEnabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Enabled · {threshold} · {scope}'**
+  String alertPrefsSummaryEnabled(String threshold, String scope);
+
+  /// No description provided for @alertPrefsSummaryDisabled.
+  ///
+  /// In en, this message translates to:
+  /// **'Disabled'**
+  String get alertPrefsSummaryDisabled;
+
+  /// No description provided for @alertPrefsIosLatencyNotice.
+  ///
+  /// In en, this message translates to:
+  /// **'iOS may delay delivery when the device is idle.'**
+  String get alertPrefsIosLatencyNotice;
+
+  /// No description provided for @alertPrefsImprovementTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Notify improvements'**
+  String get alertPrefsImprovementTitle;
+
+  /// No description provided for @alertPrefsImprovementSubtitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Also alert me when the air recovers to good'**
+  String get alertPrefsImprovementSubtitle;
+
+  /// No description provided for @alertScopeAllShort.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get alertScopeAllShort;
+
+  /// No description provided for @alertScopeFavoritesShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Favorites'**
+  String get alertScopeFavoritesShort;
+
+  /// No description provided for @alertScopeNearestShort.
+  ///
+  /// In en, this message translates to:
+  /// **'Nearby'**
+  String get alertScopeNearestShort;
+
+  /// No description provided for @permissionRationaleTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable notifications'**
+  String get permissionRationaleTitle;
+
+  /// No description provided for @permissionRationaleBody.
+  ///
+  /// In en, this message translates to:
+  /// **'We\'ll alert you when air quality crosses your threshold, even if the app is closed.'**
+  String get permissionRationaleBody;
+
+  /// No description provided for @permissionRationaleEnable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get permissionRationaleEnable;
+
+  /// No description provided for @permissionRationaleLater.
+  ///
+  /// In en, this message translates to:
+  /// **'Not now'**
+  String get permissionRationaleLater;
+
+  /// No description provided for @permissionDeniedOpenSettings.
+  ///
+  /// In en, this message translates to:
+  /// **'Open Settings'**
+  String get permissionDeniedOpenSettings;
+
+  /// No description provided for @permissionDeniedBanner.
+  ///
+  /// In en, this message translates to:
+  /// **'Notifications are blocked. Enable them in Settings to receive alerts.'**
+  String get permissionDeniedBanner;
+
+  /// No description provided for @alertEventTitleCrossing.
+  ///
+  /// In en, this message translates to:
+  /// **'Air quality: {category}'**
+  String alertEventTitleCrossing(String category);
+
+  /// No description provided for @alertEventTitleWorsening.
+  ///
+  /// In en, this message translates to:
+  /// **'Worsened: now {category}'**
+  String alertEventTitleWorsening(String category);
+
+  /// No description provided for @alertEventTitleImprovement.
+  ///
+  /// In en, this message translates to:
+  /// **'Better air at {station}'**
+  String alertEventTitleImprovement(String station);
+
+  /// No description provided for @alertEventBodyCrossing.
+  ///
+  /// In en, this message translates to:
+  /// **'{station}: {pollutant} {value} {unit}. Limit outdoor activities.'**
+  String alertEventBodyCrossing(String station, String pollutant, String value, String unit);
+
+  /// No description provided for @alertEventBodyWorsening.
+  ///
+  /// In en, this message translates to:
+  /// **'{station}: {pollutant} rose to {value} {unit}.'**
+  String alertEventBodyWorsening(String station, String pollutant, String value, String unit);
+
+  /// No description provided for @alertEventBodyImprovement.
+  ///
+  /// In en, this message translates to:
+  /// **'{station} returned to good quality.'**
+  String alertEventBodyImprovement(String station);
+
+  /// No description provided for @notifEmptyTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No alerts yet'**
+  String get notifEmptyTitle;
+
+  /// No description provided for @notifEmptyBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts will appear here when air crosses your threshold.'**
+  String get notifEmptyBody;
+
+  /// No description provided for @notifSectionEarlier.
+  ///
+  /// In en, this message translates to:
+  /// **'EARLIER'**
+  String get notifSectionEarlier;
+
+  /// No description provided for @alertChannelBadName.
+  ///
+  /// In en, this message translates to:
+  /// **'Bad air quality'**
+  String get alertChannelBadName;
+
+  /// No description provided for @alertChannelBadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts when air reaches Bad level'**
+  String get alertChannelBadDesc;
+
+  /// No description provided for @alertChannelVeryBadName.
+  ///
+  /// In en, this message translates to:
+  /// **'Very bad air quality'**
+  String get alertChannelVeryBadName;
+
+  /// No description provided for @alertChannelVeryBadDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts when air reaches Very Bad level (contingency)'**
+  String get alertChannelVeryBadDesc;
+
+  /// No description provided for @alertChannelExtremeName.
+  ///
+  /// In en, this message translates to:
+  /// **'Extreme air quality'**
+  String get alertChannelExtremeName;
+
+  /// No description provided for @alertChannelExtremeDesc.
+  ///
+  /// In en, this message translates to:
+  /// **'Alerts when air reaches Extremely Bad level'**
+  String get alertChannelExtremeDesc;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {
