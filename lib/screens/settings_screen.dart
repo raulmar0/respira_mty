@@ -23,10 +23,17 @@ class SettingsScreen extends ConsumerWidget {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back_ios_new, color: theme.iconTheme.color),
-          onPressed: () {},
-        ),
+        // Show back button only when this screen was pushed onto the stack
+        // (e.g. opened from the Notifications banner). When reached as a tab
+        // from MainShell there is nothing to pop, so hide the button instead
+        // of showing one that does nothing.
+        automaticallyImplyLeading: false,
+        leading: Navigator.of(context).canPop()
+            ? IconButton(
+                icon: Icon(Icons.arrow_back_ios_new, color: theme.iconTheme.color),
+                onPressed: () => Navigator.of(context).pop(),
+              )
+            : null,
         title: Text(
           AppLocalizations.of(context)!.settingsTitle,
           style: theme.appBarTheme.titleTextStyle,
@@ -122,11 +129,13 @@ class SettingsScreen extends ConsumerWidget {
                   _SettingsTile(
                     title: AppLocalizations.of(context)!.privacyPolicy,
                     showArrow: true,
+                    onTap: () => _showPrivacyPolicyDialog(context),
                   ),
                   _CustomDivider(),
                   _SettingsTile(
                     title: AppLocalizations.of(context)!.aboutApp,
                     showArrow: true,
+                    onTap: () => _showAboutAppDialog(context),
                   ),
                 ],
               ),
@@ -180,6 +189,41 @@ class SettingsScreen extends ConsumerWidget {
       AlertScope.nearest => loc.alertScopeNearestShort,
     };
     return loc.alertPrefsSummaryEnabled(threshold, scope);
+  }
+
+  /// Shows the built-in Material AboutDialog. Pulls `applicationName`,
+  /// `applicationVersion` and `applicationLegalese` from existing l10n keys
+  /// so it stays consistent across the four supported locales without adding
+  /// new strings.
+  void _showAboutAppDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    showAboutDialog(
+      context: context,
+      applicationName: loc.appTitle,
+      applicationVersion: loc.versionLabel,
+      applicationLegalese: loc.dataProviderCredit,
+    );
+  }
+
+  /// Shows a minimal placeholder Privacy Policy dialog. The full policy is a
+  /// product decision (see audit) — this at least stops the row from being a
+  /// dead button and surfaces what data the app handles right now (only
+  /// public SIMA data, no personal info).
+  void _showPrivacyPolicyDialog(BuildContext context) {
+    final loc = AppLocalizations.of(context)!;
+    showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(loc.privacyPolicy),
+        content: Text(loc.dataProviderCredit),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   PopupMenuItem<ThemeModeOption> _buildMenuItem(BuildContext context, ThemeModeOption option, ThemeData theme, ThemeModeOption current) {
