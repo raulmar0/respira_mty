@@ -63,10 +63,60 @@ class StationsListFilterNotifier extends Notifier<StationsListFilter> {
   void setFilter(StationsListFilter value) => state = value;
 }
 
-final airQualityProvider = FutureProvider<List<Station>>((ref) {
-  final service = AirQualityService();
-  return service.fetchStations();
-});
+/// Human-readable loading caption emitted while [AirQualityService] fetches
+/// stations one by one. Consumed by the UI to show "Cargando La Pastora (3/17)".
+class LoadingMessageNotifier extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? value) => state = value;
+}
+
+final loadingMessageProvider =
+    NotifierProvider<LoadingMessageNotifier, String?>(
+  LoadingMessageNotifier.new,
+);
+
+class AirQualityNotifier extends AsyncNotifier<List<Station>> {
+  @override
+  Future<List<Station>> build() async {
+    final service = AirQualityService();
+    try {
+      return await service.fetchStations(
+        useCache: true,
+        forceRefresh: false,
+        onProgress: _emitProgress,
+      );
+    } finally {
+      ref.read(loadingMessageProvider.notifier).state = null;
+    }
+  }
+
+  /// Forces a network refresh and updates the cache.
+  /// Throws if the network call fails so callers can show error UI.
+  Future<void> refresh() async {
+    state = const AsyncValue.loading();
+    state = await AsyncValue.guard(() async {
+      final service = AirQualityService();
+      return service.fetchStations(
+        useCache: false,
+        forceRefresh: true,
+        onProgress: _emitProgress,
+      );
+    });
+    ref.read(loadingMessageProvider.notifier).state = null;
+    if (state.hasError) throw state.error!;
+  }
+
+  void _emitProgress(String name, int current, int total) {
+    ref.read(loadingMessageProvider.notifier).state =
+        'Cargando $name ($current/$total)';
+  }
+}
+
+final airQualityProvider =
+    AsyncNotifierProvider<AirQualityNotifier, List<Station>>(
+  AirQualityNotifier.new,
+);
 
 final favoriteStationsProvider =
     NotifierProvider<FavoriteStationsNotifier, Set<String>>(

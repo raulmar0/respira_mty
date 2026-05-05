@@ -51,6 +51,46 @@ class Station {
   /// Obtiene el AQI equivalente (índice de categoría 0-5 para compatibilidad)
   int get aqi => dominantPollutant.category.index * 50;
 
+  Map<String, dynamic> toJson() => <String, dynamic>{
+        'id': id,
+        'apiCode': apiCode,
+        'name': name,
+        'pm25': pm25,
+        'pm10': pm10,
+        'o3': o3,
+        'no2': no2,
+        'so2': so2,
+        'co': co,
+        'latitude': latitude,
+        'longitude': longitude,
+        'isFavorite': isFavorite,
+        'updatedAt': updatedAt?.toUtc().toIso8601String(),
+        'parametrosAlerta': parametrosAlerta,
+        'parametrosUI': parametrosUI,
+      };
+
+  factory Station.fromJson(Map<String, dynamic> json) => Station(
+        id: json['id'] as String,
+        apiCode: json['apiCode'] as String,
+        name: json['name'] as String,
+        pm25: (json['pm25'] as num?)?.toDouble(),
+        pm10: (json['pm10'] as num?)?.toDouble(),
+        o3: (json['o3'] as num?)?.toDouble(),
+        no2: (json['no2'] as num?)?.toDouble(),
+        so2: (json['so2'] as num?)?.toDouble(),
+        co: (json['co'] as num?)?.toDouble(),
+        latitude: (json['latitude'] as num).toDouble(),
+        longitude: (json['longitude'] as num).toDouble(),
+        isFavorite: json['isFavorite'] as bool? ?? false,
+        updatedAt: json['updatedAt'] == null
+            ? null
+            : DateTime.parse(json['updatedAt'] as String),
+        parametrosAlerta: (json['parametrosAlerta'] as List<dynamic>?)
+            ?.cast<Map<String, dynamic>>(),
+        parametrosUI: (json['parametrosUI'] as List<dynamic>?)
+            ?.cast<Map<String, dynamic>>(),
+      );
+
   /// Obtiene la lista de contaminantes desde parametrosUI
   List<Map<String, dynamic>> get pollutantsFromUI {
     if (parametrosUI == null) return [];

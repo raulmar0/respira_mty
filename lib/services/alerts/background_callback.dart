@@ -50,7 +50,8 @@ void alertBackgroundCallback() {
       final baselineStore = AlertBaselineStore();
       final baseline = await baselineStore.load();
 
-      final stations = await AirQualityService().fetchStations();
+      final service = AirQualityService();
+      final stations = await service.fetchStations(useCache: true, forceRefresh: false);
       if (stations.isEmpty) return Future.value(true);
 
       // First-run baseline guard: seed silently from current data instead of

@@ -36,6 +36,7 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
     final selectedFilter = ref.watch(stationsListFilterProvider);
     final query = ref.watch(stationSearchQueryProvider);
     final lastUpdate = ref.watch(lastUpdateProvider);
+    final loadingMessage = ref.watch(loadingMessageProvider);
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -96,7 +97,8 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                                     SnackBar(content: Text(loc.updatingStations)),
                                   );
                                   try {
-                                    final updatedList = await ref.refresh(airQualityProvider.future);
+                                    await ref.read(airQualityProvider.notifier).refresh();
+                                    final updatedList = ref.read(airQualityProvider).value ?? [];
                                     messenger.showSnackBar(
                                       SnackBar(content: Text(loc.stationsUpdated(updatedList.length))),
                                     );
@@ -287,10 +289,43 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                             );
                           },
                         ),
-                        loading: () => ListView.builder(
-                          itemCount: 4,
-                          padding: const EdgeInsets.only(top: 0, bottom: 16),
-                          itemBuilder: (context, index) => const StationCardSkeleton(),
+                        loading: () => Column(
+                          children: [
+                            if (loadingMessage != null) ...[
+                              const SizedBox(height: 8),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 14,
+                                    height: 14,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2,
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                        theme.colorScheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    loadingMessage,
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      color: Colors.grey[500],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                            ],
+                            Expanded(
+                              child: ListView.builder(
+                                itemCount: 4,
+                                padding: const EdgeInsets.only(top: 0, bottom: 16),
+                                itemBuilder: (context, index) => const StationCardSkeleton(),
+                              ),
+                            ),
+                          ],
                         ),
                         error: (error, stack) => Center(
                           child: Text(

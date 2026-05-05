@@ -6,6 +6,14 @@ import 'package:respira_mty/models/station.dart';
 import 'package:respira_mty/providers/station_provider.dart';
 import 'package:respira_mty/screens/main_shell.dart';
 
+class _FakeAirQualityNotifier extends AirQualityNotifier {
+  final List<Station> _stations;
+  _FakeAirQualityNotifier(this._stations);
+
+  @override
+  Future<List<Station>> build() async => _stations;
+}
+
 void main() {
   testWidgets('navigate from list to pollutant detail', (tester) async {
     final station = Station(
@@ -28,7 +36,7 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          airQualityProvider.overrideWith((ref) async => [station]),
+          airQualityProvider.overrideWith(() => _FakeAirQualityNotifier([station])),
         ],
         child: MaterialApp(
           locale: const Locale('es'),

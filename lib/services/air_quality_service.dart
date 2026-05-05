@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import '../models/station.dart';
 import '../data/station_locations.dart';
 import 'package:flutter/foundation.dart';
+import 'station_cache_service.dart';
 
 /// Wraps the SIMA Nuevo León air quality endpoints.
 ///
@@ -13,75 +14,101 @@ import 'package:flutter/foundation.dart';
 ///   provider.
 /// - One automatic retry with a short backoff on transient failures (network
 ///   errors, 5xx, timeouts).
-/// - Quieter debug output: we keep brief error/info traces but drop the per
-///   station JSON dumps that flooded the console on every refresh.
+/// - Global endpoints (`api_conc.php` and `api_indice.php`) fetched once,
+///   then reused for every station, cutting ~34 redundant requests.
+/// - Optional 20-minute cache so the UI opens instantly and background tasks
+///   avoid hammering the server.
 class AirQualityService {
-  AirQualityService({http.Client? client, Duration? timeout})
-      : _client = client ?? http.Client(),
-        _timeout = timeout ?? const Duration(seconds: 15);
+  AirQualityService({
+    http.Client? client,
+    Duration? timeout,
+    StationCacheService? cache,
+  })  : _client = client ?? http.Client(),
+        _timeout = timeout ?? const Duration(seconds: 15),
+        _cache = cache ?? StationCacheService();
 
   final http.Client _client;
   final Duration _timeout;
+  final StationCacheService _cache;
 
   static const String _baseUrl = 'https://aire.nl.gob.mx/SIMA2017reportes';
 
-  Future<List<Station>> fetchStations() async {
+  /// Fetches all stations.
+  ///
+  /// If [useCache] is `true` (default) and the cache is still fresh (<20 min),
+  /// returns the cached list immediately without touching the network.
+  ///
+  /// If [forceRefresh] is `true`, skips the cache read but still writes the
+  /// new result back to the cache on success.
+  ///
+  /// [onProgress] is called before each per-station request with the station
+  /// name, current index (1-based) and total count so the UI can show a live
+  /// loading caption.
+  Future<List<Station>> fetchStations({
+    bool useCache = true,
+    bool forceRefresh = false,
+    void Function(String stationName, int current, int total)? onProgress,
+  }) async {
+    // 1. Try cache first.
+    if (useCache && !forceRefresh) {
+      final cached = await _cache.load();
+      if (cached != null && cached.isNotEmpty) {
+        return cached;
+      }
+    }
+
+    // 2. Fetch global data once.
+    final concResponse = await _getWithRetry('$_baseUrl/api_conc.php');
+    if (concResponse == null) {
+      debugPrint('AirQualityService: api_conc.php failed, returning empty');
+      return <Station>[];
+    }
+    final parametrosAlerta =
+        jsonDecode(utf8.decode(concResponse.bodyBytes)) as List<dynamic>;
+
+    final paramResponse = await _getWithRetry('$_baseUrl/api_indice.php');
+    if (paramResponse == null) {
+      debugPrint('AirQualityService: api_indice.php failed, returning empty');
+      return <Station>[];
+    }
+    final parametrosUI =
+        jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>;
+
+    // 3. Build a lookup map from parametrosUI so we don't scan the list
+    //    for every station.
+    final uiValues = <String, double?>{};
+    for (final param in parametrosUI) {
+      final parameter = param['Parameter'] as String?;
+      if (parameter == null) continue;
+      final hrAveData = param['HrAveData'];
+      final value = hrAveData is num
+          ? hrAveData.toDouble()
+          : (hrAveData == 'ND'
+              ? null
+              : double.tryParse(hrAveData.toString()));
+      uiValues[parameter] = value;
+    }
+
+    // 4. Per-station probe (reporte diario). This is still sequential to
+    //    avoid overwhelming the server, but now it's only 1 request per
+    //    station instead of 3.
     final stations = <Station>[];
 
-    for (final location in stationLocations) {
+    for (var i = 0; i < stationLocations.length; i++) {
+      final location = stationLocations[i];
+      onProgress?.call(location.name, i + 1, stationLocations.length);
       try {
-        // 1. Per-station daily report. The body isn't used downstream — this
-        //    call acts as a "is the station reporting today?" probe; if it
-        //    fails we skip the station entirely.
         final reportUrl =
             '$_baseUrl/ReporteDiariosimaIcars.php?estacion1=${location.apiCode}';
         final reportResponse = await _getWithRetry(reportUrl);
         if (reportResponse == null) continue;
 
-        // 2. Concentration alert parameters (shared across stations).
-        final concResponse = await _getWithRetry('$_baseUrl/api_conc.php');
-        if (concResponse == null) continue;
-        final parametrosAlerta =
-            jsonDecode(utf8.decode(concResponse.bodyBytes)) as List<dynamic>;
-
-        // 3. UI index parameters (the actual pollutant readings).
-        final paramResponse = await _getWithRetry('$_baseUrl/api_indice.php');
-        if (paramResponse == null) continue;
-        final parametrosUI =
-            jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>;
-
-        // Parse pollutants from parametrosUI
-        double? pm10, pm25, o3, no2, so2, co;
-        for (final param in parametrosUI) {
-          final parameter = param['Parameter'] as String;
-          final hrAveData = param['HrAveData'];
-          final value = hrAveData is num
-              ? hrAveData.toDouble()
-              : (hrAveData == "ND"
-                  ? null
-                  : double.tryParse(hrAveData.toString()));
-
-          switch (parameter) {
-            case 'PM10_12':
-              pm10 = value;
-              break;
-            case 'PM25_12':
-              pm25 = value;
-              break;
-            case 'O3m':
-              o3 = value;
-              break;
-            case 'NO2m':
-              no2 = value;
-              break;
-            case 'SO2_1':
-              so2 = value;
-              break;
-            case 'CO8m':
-              co = value;
-              break;
-          }
-        }
+        final pm10 = uiValues['PM10_12'];
+        final pm25 = uiValues['PM25_12'];
+        final o3 = uiValues['O3m'];
+        final no2 = uiValues['NO2m'];
+        final so2 = uiValues['SO2_1'];
+        final co = uiValues['CO8m'];
 
         final station = Station(
           id: location.id,
@@ -106,6 +133,11 @@ class AirQualityService {
       }
     }
 
+    // 5. Persist to cache.
+    if (stations.isNotEmpty) {
+      await _cache.save(stations);
+    }
+
     return stations;
   }
 
@@ -128,7 +160,8 @@ class AirQualityService {
           'GET $url -> ${response.statusCode} (attempt ${attempt + 1}/${retries + 1})',
         );
       } catch (e) {
-        debugPrint('GET $url failed: $e (attempt ${attempt + 1}/${retries + 1})');
+        debugPrint(
+            'GET $url failed: $e (attempt ${attempt + 1}/${retries + 1})');
       }
       if (attempt < retries) {
         await Future.delayed(backoff * (attempt + 1));
