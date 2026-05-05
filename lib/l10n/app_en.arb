@@ -238,5 +238,12 @@
   "alertChannelVeryBadName": "Very bad air quality",
   "alertChannelVeryBadDesc": "Alerts when air reaches Very Bad level (contingency)",
   "alertChannelExtremeName": "Extreme air quality",
-  "alertChannelExtremeDesc": "Alerts when air reaches Extremely Bad level"
+  "alertChannelExtremeDesc": "Alerts when air reaches Extremely Bad level",
+
+  "simaDownTitle": "Service Unavailable",
+  "simaDownBody": "The SIMA air quality server is currently down. This is not an issue with the app. Please try again later.",
+  "networkErrorTitle": "No Internet Connection",
+  "networkErrorBody": "Check your connection and try again.",
+  "retryButton": "Retry",
+  "okButton": "OK"
 }

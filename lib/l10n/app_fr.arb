@@ -227,5 +227,12 @@
   "alertChannelVeryBadName": "Très mauvaise qualité de l'air",
   "alertChannelVeryBadDesc": "Alertes quand l'air atteint le niveau Très Mauvais (contingence)",
   "alertChannelExtremeName": "Qualité de l'air extrême",
-  "alertChannelExtremeDesc": "Alertes quand l'air atteint le niveau Extrêmement Mauvais"
+  "alertChannelExtremeDesc": "Alertes quand l'air atteint le niveau Extrêmement Mauvais",
+
+  "simaDownTitle": "Service indisponible",
+  "simaDownBody": "Le serveur SIMA de qualité de l'air est actuellement hors ligne. Ce n'est pas un problème de l'application. Veuillez réessayer plus tard.",
+  "networkErrorTitle": "Pas de connexion Internet",
+  "networkErrorBody": "Vérifiez votre connexion et réessayez.",
+  "retryButton": "Réessayer",
+  "okButton": "OK"
 }

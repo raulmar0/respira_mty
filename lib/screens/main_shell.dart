@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:respira_mty/l10n/app_localizations.dart';
+import '../models/sima_error.dart';
 import '../providers/alert_engine_provider.dart';
 import '../providers/alert_history_provider.dart';
 import '../providers/navigation_provider.dart';
+import '../providers/station_provider.dart';
+import '../widgets/sima_error_dialog.dart';
 import 'stations_map_screen.dart';
 import 'stations_list_screen.dart';
 import 'notifications_screen.dart';
@@ -19,13 +22,12 @@ class MainShell extends ConsumerStatefulWidget {
 class _MainShellState extends ConsumerState<MainShell>
     with WidgetsBindingObserver {
   final List<GlobalKey<NavigatorState>> _navigatorKeys = List.generate(4, (_) => GlobalKey<NavigatorState>());
+  bool _errorDialogShown = false;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
-    // Bootstrap the foreground alert engine listener. The provider keeps the
-    // engine alive for the lifetime of the ProviderContainer.
     ref.read(alertEngineProvider);
   }
 
@@ -47,6 +49,22 @@ class _MainShellState extends ConsumerState<MainShell>
   @override
   Widget build(BuildContext context) {
     final selectedIndex = ref.watch(selectedTabProvider);
+
+    ref.listen<AsyncValue>(airQualityProvider, (previous, next) {
+      next.when(
+        data: (_) => _errorDialogShown = false,
+        loading: () {},
+        error: (error, _) {
+          if (_errorDialogShown) return;
+          if (error is! SimaError) return;
+          _errorDialogShown = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!mounted) return;
+            showSimaErrorDialog(context, error);
+          });
+        },
+      );
+    });
 
     return Scaffold(
       body: IndexedStack(

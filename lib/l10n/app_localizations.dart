@@ -1310,6 +1310,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Alerts when air reaches Extremely Bad level'**
   String get alertChannelExtremeDesc;
+
+  /// No description provided for @simaDownTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'Service Unavailable'**
+  String get simaDownTitle;
+
+  /// No description provided for @simaDownBody.
+  ///
+  /// In en, this message translates to:
+  /// **'The SIMA air quality server is currently down. This is not an issue with the app. Please try again later.'**
+  String get simaDownBody;
+
+  /// No description provided for @networkErrorTitle.
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connection'**
+  String get networkErrorTitle;
+
+  /// No description provided for @networkErrorBody.
+  ///
+  /// In en, this message translates to:
+  /// **'Check your connection and try again.'**
+  String get networkErrorBody;
+
+  /// No description provided for @retryButton.
+  ///
+  /// In en, this message translates to:
+  /// **'Retry'**
+  String get retryButton;
+
+  /// No description provided for @okButton.
+  ///
+  /// In en, this message translates to:
+  /// **'OK'**
+  String get okButton;
 }
 
 class _AppLocalizationsDelegate extends LocalizationsDelegate<AppLocalizations> {

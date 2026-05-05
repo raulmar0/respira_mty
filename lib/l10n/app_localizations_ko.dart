@@ -643,4 +643,22 @@ class AppLocalizationsKo extends AppLocalizations {
 
   @override
   String get alertChannelExtremeDesc => '공기가 극도로 나쁨 수준에 도달하면 알림';
+
+  @override
+  String get simaDownTitle => '서비스 이용 불가';
+
+  @override
+  String get simaDownBody => 'SIMA 대기질 서버가 현재 다운되었습니다. 앱의 문제가 아닙니다. 나중에 다시 시도해 주세요.';
+
+  @override
+  String get networkErrorTitle => '인터넷 연결 없음';
+
+  @override
+  String get networkErrorBody => '연결을 확인하고 다시 시도하세요.';
+
+  @override
+  String get retryButton => '다시 시도';
+
+  @override
+  String get okButton => '확인';
 }

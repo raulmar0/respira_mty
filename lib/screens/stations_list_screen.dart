@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../models/sima_error.dart';
 import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
 import '../widgets/sort_button.dart';
@@ -328,9 +329,40 @@ class _StationsListScreenState extends ConsumerState<StationsListScreen> with Au
                           ],
                         ),
                         error: (error, stack) => Center(
-                          child: Text(
-                            'No se pudieron cargar las estaciones',
-                            style: TextStyle(color: Colors.grey[600]),
+                          child: Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  error is SimaError && error.isSimaDown
+                                      ? Icons.cloud_off_outlined
+                                      : Icons.wifi_off_outlined,
+                                  size: 48,
+                                  color: Colors.grey[400],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  error is SimaError && error.isSimaDown
+                                      ? AppLocalizations.of(context)!.simaDownTitle
+                                      : AppLocalizations.of(context)!.networkErrorTitle,
+                                  style: TextStyle(
+                                    color: Colors.grey[600],
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  error is SimaError && error.isSimaDown
+                                      ? AppLocalizations.of(context)!.simaDownBody
+                                      : AppLocalizations.of(context)!.networkErrorBody,
+                                  style: TextStyle(color: Colors.grey[500], fontSize: 13),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),

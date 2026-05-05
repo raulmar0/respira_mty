@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../models/station.dart';
+import '../models/sima_error.dart';
 import '../data/station_locations.dart';
 import 'package:flutter/foundation.dart';
 import 'station_cache_service.dart';
@@ -41,6 +43,9 @@ class AirQualityService {
   /// If [forceRefresh] is `true`, skips the cache read but still writes the
   /// new result back to the cache on success.
   ///
+  /// Throws [SimaError] on failure so callers can distinguish SIMA server
+  /// outages from the user having no connectivity.
+  ///
   /// [onProgress] is called before each per-station request with the station
   /// name, current index (1-based) and total count so the UI can show a live
   /// loading caption.
@@ -49,7 +54,6 @@ class AirQualityService {
     bool forceRefresh = false,
     void Function(String stationName, int current, int total)? onProgress,
   }) async {
-    // 1. Try cache first.
     if (useCache && !forceRefresh) {
       final cached = await _cache.load();
       if (cached != null && cached.isNotEmpty) {
@@ -59,18 +63,10 @@ class AirQualityService {
 
     // 2. Fetch global data once.
     final concResponse = await _getWithRetry('$_baseUrl/api_conc.php');
-    if (concResponse == null) {
-      debugPrint('AirQualityService: api_conc.php failed, returning empty');
-      return <Station>[];
-    }
     final parametrosAlerta =
         jsonDecode(utf8.decode(concResponse.bodyBytes)) as List<dynamic>;
 
     final paramResponse = await _getWithRetry('$_baseUrl/api_indice.php');
-    if (paramResponse == null) {
-      debugPrint('AirQualityService: api_indice.php failed, returning empty');
-      return <Station>[];
-    }
     final parametrosUI =
         jsonDecode(utf8.decode(paramResponse.bodyBytes)) as List<dynamic>;
 
@@ -100,8 +96,7 @@ class AirQualityService {
       try {
         final reportUrl =
             '$_baseUrl/ReporteDiariosimaIcars.php?estacion1=${location.apiCode}';
-        final reportResponse = await _getWithRetry(reportUrl);
-        if (reportResponse == null) continue;
+        await _getWithRetry(reportUrl);
 
         final pm10 = uiValues['PM10_12'];
         final pm25 = uiValues['PM25_12'];
@@ -142,9 +137,11 @@ class AirQualityService {
   }
 
   /// Performs an HTTP GET with [retries] additional attempts on failure.
-  /// Returns `null` if every attempt fails (connection error, timeout, or
-  /// non-2xx response). Successful responses are returned as-is.
-  Future<http.Response?> _getWithRetry(
+  ///
+  /// Throws [SimaError.networkError] when the device has no connectivity, and
+  /// [SimaError.simaDown] when the SIMA server is unreachable or returns a
+  /// non-2xx status after all retries.
+  Future<http.Response> _getWithRetry(
     String url, {
     int retries = 1,
     Duration backoff = const Duration(milliseconds: 400),
@@ -159,6 +156,12 @@ class AirQualityService {
         debugPrint(
           'GET $url -> ${response.statusCode} (attempt ${attempt + 1}/${retries + 1})',
         );
+      } on SocketException catch (e) {
+        debugPrint('GET $url socket error: $e');
+        throw SimaError.networkError(message: 'No internet connection');
+      } on http.ClientException catch (e) {
+        debugPrint('GET $url client error: $e');
+        throw SimaError.networkError(message: 'Connection failed');
       } catch (e) {
         debugPrint(
             'GET $url failed: $e (attempt ${attempt + 1}/${retries + 1})');
@@ -167,6 +170,6 @@ class AirQualityService {
         await Future.delayed(backoff * (attempt + 1));
       }
     }
-    return null;
+    throw SimaError.simaDown(message: 'SIMA server unreachable after retries');
   }
 }

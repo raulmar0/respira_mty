@@ -227,5 +227,12 @@
   "alertChannelVeryBadName": "매우 나쁜 공기질",
   "alertChannelVeryBadDesc": "공기가 매우 나쁨 수준에 도달하면 알림 (긴급 사태)",
   "alertChannelExtremeName": "극도의 공기질",
-  "alertChannelExtremeDesc": "공기가 극도로 나쁨 수준에 도달하면 알림"
+  "alertChannelExtremeDesc": "공기가 극도로 나쁨 수준에 도달하면 알림",
+
+  "simaDownTitle": "서비스 이용 불가",
+  "simaDownBody": "SIMA 대기질 서버가 현재 다운되었습니다. 앱의 문제가 아닙니다. 나중에 다시 시도해 주세요.",
+  "networkErrorTitle": "인터넷 연결 없음",
+  "networkErrorBody": "연결을 확인하고 다시 시도하세요.",
+  "retryButton": "다시 시도",
+  "okButton": "확인"
 }

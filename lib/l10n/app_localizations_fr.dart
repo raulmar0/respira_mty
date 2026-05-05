@@ -643,4 +643,22 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get alertChannelExtremeDesc => 'Alertes quand l\'air atteint le niveau Extrêmement Mauvais';
+
+  @override
+  String get simaDownTitle => 'Service indisponible';
+
+  @override
+  String get simaDownBody => 'Le serveur SIMA de qualité de l\'air est actuellement hors ligne. Ce n\'est pas un problème de l\'application. Veuillez réessayer plus tard.';
+
+  @override
+  String get networkErrorTitle => 'Pas de connexion Internet';
+
+  @override
+  String get networkErrorBody => 'Vérifiez votre connexion et réessayez.';
+
+  @override
+  String get retryButton => 'Réessayer';
+
+  @override
+  String get okButton => 'OK';
 }

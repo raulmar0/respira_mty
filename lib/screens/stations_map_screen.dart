@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 import '../data/station_locations.dart';
+import '../models/sima_error.dart';
 import '../models/station.dart';
 import '../providers/station_provider.dart';
 import '../widgets/station_card.dart';
@@ -188,38 +189,62 @@ class _StationsMapScreenState extends ConsumerState<StationsMapScreen> with Auto
               top: 200,
               left: 16,
               right: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 10,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.12),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  children: [
-                    const Icon(Icons.error_outline, color: Colors.redAccent),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        AppLocalizations.of(context)!.errorLoadingAirQuality,
-                        style: TextStyle(
-                          color: Colors.grey[800],
-                          fontWeight: FontWeight.w600,
+              child: Builder(builder: (context) {
+                final loc = AppLocalizations.of(context)!;
+                final error = stationsAsync.error;
+                final isSimaDown = error is SimaError && error.isSimaDown;
+                final errorTitle = isSimaDown ? loc.simaDownTitle : loc.networkErrorTitle;
+                final errorBody = isSimaDown ? loc.simaDownBody : loc.networkErrorBody;
+                final errorIcon = isSimaDown ? Icons.cloud_off_outlined : Icons.wifi_off_outlined;
+                return Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 10,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Icon(errorIcon, color: Colors.orangeAccent),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              errorTitle,
+                              style: TextStyle(
+                                color: Colors.grey[800],
+                                fontWeight: FontWeight.w600,
+                                fontSize: 13,
+                              ),
+                            ),
+                            Text(
+                              errorBody,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 11,
+                              ),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
+                    ],
+                  ),
+                );
+              }),
             ),
           SafeArea(
             child: Padding(
